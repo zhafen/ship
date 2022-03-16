@@ -5,7 +5,7 @@ import unittest
 import ship
 
 # Patch this object throughout
-default_criteria = [ 'understandability', 'functionality', ]
+default_criteria = [ 'functionality', 'understandability' ]
 
 ########################################################################
 
@@ -22,7 +22,7 @@ class TestConstruct( unittest.TestCase ):
         docks = ship.Docks( criteria=default_criteria )
         docks.construct_ship( 'The Ship', )
 
-        assert docks['The Ship']['criteria'] == default_criteria
+        assert sorted( docks['The Ship'].criteria() ) == default_criteria
 
     ########################################################################
 
@@ -30,13 +30,13 @@ class TestEvaluate( unittest.TestCase ):
 
     def setUp( self ):
 
-        self.docks = ship.Docks()
-        self.docks.construct_ship( 'The Ship', [ 'pointiness', 'strangeness' ] )
+        self.docks = ship.Docks( criteria=default_criteria )
+        self.docks.construct_ship( 'The Ship' )
 
     ########################################################################
 
     def test_evaluate_ship( self ):
 
-        output = self.docks.evaluate( 'The Ship', pointiness=0.5, strangeness=0.25)
+        output = self.docks.evaluate_ship( 'The Ship', understandability=0.5, functionality=0.25 )
 
         npt.assert_allclose( output, 0.5*0.25 )

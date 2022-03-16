@@ -1,4 +1,8 @@
+import numpy as np
+
 import verdict
+
+########################################################################
 
 class Docks( object ):
 
@@ -28,6 +32,7 @@ class Docks( object ):
 
     ########################################################################
     # Access methods
+    ########################################################################
 
     def __getitem__( self, key ):
 
@@ -38,8 +43,10 @@ class Docks( object ):
         self.ships[key] = value
 
     ########################################################################
+    # Shipbuilding methods
+    ########################################################################
 
-    def construct_ship( self, name, criteria=[] ):
+    def construct_ship( self, name, criteria=[], *args, **kwargs ):
         '''Start tracking progress for a deliverable.
 
         Args:
@@ -50,8 +57,89 @@ class Docks( object ):
                 List of names of criteria to evaluate for when the deliverable is ready.
         '''
 
-        self.ships[name] = verdict.Dict({
-            'criteria': list( set( self.criteria ).union( set( criteria ) ) ),
+        # Combination of particular criteria and default criteria
+        criteria=list( set( self.criteria ).union( criteria ) )
+
+        self[name] = Ship( name, criteria, *args, **kwargs )
+    
+    ########################################################################
+
+    def evaluate_ship( self, name, **criteria_values ):
+        '''Evaluate the current status of a ship.
+
+        Args:
+            name (str):
+                Name of the deliverable.
+
+            criteria_values (dict of floats):
+                Values for the criteria.
+        '''
+
+        return self[name].evaluate( **criteria_values )
+
+########################################################################
+
+class Ship( object ):
+
+    def __init__( self, name, criteria=[] ):
+        '''Object for a tracked deliverable.
+
+        Args:
+            name (str):
+                Name of the deliverable.
+
+            criteria (list of strs):
+                List of names of criteria to evaluate for when the deliverable is ready.
+
+            status (dict of floats):
+                Initial status of the ship.
+        '''
+
+        # Store properties
+        self.name = name
+        self.data = verdict.Dict({
+            'status': {},
         })
 
+        # Initial state
+        for key in criteria:
+            self.data['status'][key] = 0.
+
     ########################################################################
+    # Access methods
+    ########################################################################
+
+    def __getitem__( self, key ):
+
+        return self.data[key]
+
+    def __setitem__( self, key, value ):
+
+        self.data[key] = value
+
+    ########################################################################
+    # Ship state
+    ########################################################################
+
+    def criteria( self ):
+        '''The criteria used for evaluating the ship.'''
+
+        return list( self.data['status'].keys() )
+
+    ########################################################################
+
+    def evaluate( self, **criteria_values ):
+        '''Evaluate the current status of the ship.
+
+        Args:
+            criteria_values (dict of floats):
+                Values for the criteria.
+        '''
+
+        # Update the current ship values
+        self['status'].update( criteria_values )
+
+        # Perform the evaluation
+        overall_status = np.prod( self['status'].array() )
+
+        return overall_status
