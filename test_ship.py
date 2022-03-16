@@ -4,6 +4,9 @@ import unittest
 
 import ship
 
+# Patch this object throughout
+default_criteria = [ 'understandability', 'functionality', ]
+
 ########################################################################
 
 class TestConstruct( unittest.TestCase ):
@@ -16,8 +19,10 @@ class TestConstruct( unittest.TestCase ):
 
     def test_construct_ship( self ):
 
-        docks = ship.Docks()
+        docks = ship.Docks( criteria=default_criteria )
         docks.construct_ship( 'The Ship', )
+
+        assert docks['The Ship']['criteria'] == default_criteria
 
     ########################################################################
 
