@@ -136,5 +136,39 @@ class TestEvaluate( unittest.TestCase ):
 
             output = self.docks.evaluate_ship( 'The Ship', True )
 
-        npt.assert_allclose( output, 0. )
+        assert output == 'q'
 
+    ########################################################################
+
+    def test_evaluate_docks_input( self ):
+
+        self.docks.construct_ship( 'The Second Ship' )
+        self.docks.construct_ship( 'The Third Ship' )
+
+        with mock.patch( 'builtins.input' ) as mock_input:
+            mock_input.side_effect = [  0.5, 0.1, 0.2, 0.1, 0., 1., ]
+
+            output = self.docks.evaluate( 'all', True )
+
+        expected = {
+            'The Ship': 0.05,
+            'The Second Ship': 0.02,
+            'The Third Ship': 0.0,
+        }
+        for key, item in expected.items():
+            npt.assert_allclose( item, output[key] )
+
+    ########################################################################
+
+
+    def test_evaluate_docks_input_break( self ):
+
+        self.docks.construct_ship( 'The Second Ship' )
+        self.docks.construct_ship( 'The Third Ship' )
+
+        with mock.patch( 'builtins.input' ) as mock_input:
+            mock_input.side_effect = [  0.5, 0.1, 'q', 0.1 ]
+
+            output = self.docks.evaluate( 'all', True )
+
+        assert output == 'q'

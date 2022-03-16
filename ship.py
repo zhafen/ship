@@ -78,6 +78,28 @@ class Docks( object ):
         return self[name].evaluate( *args, **criteria_values )
 
     ########################################################################
+
+    def evaluate( self, ship_names='all', *args ):
+        '''Evaluate the current status of all ships.
+
+        Args:
+            ship_names (str or list of strs):
+                Names of ships to evaluate. If 'all' then all are evaluated.
+        '''
+
+        if ship_names == 'all':
+            ship_names = list( self.ships.keys() )
+
+        result = {}
+        for name in ship_names:
+            result[name] = self.evaluate_ship( name, *args )
+            if result[name] == 'q':
+                print( 'Exit code received. Exiting...' )
+                return 'q'
+
+        return result
+
+    ########################################################################
     # I/O
     ########################################################################
 
@@ -194,14 +216,14 @@ class Ship( object ):
             print( 'Evaluating ship [ {} ]...'.format( self.name ) )
             for key, item in self['status'].items():
                 if key not in criteria_values:
-                    value = input( '    {} = {}. Update ='.format( key, item ) )
+                    value = input( '    {} = {}. Updated ='.format( key, item ) )
                     
                     # Skip
                     if value == '':
                         continue
                     elif value == 'q':
                         print( 'Exit code received. Saving and quitting.' )
-                        break
+                        return 'q'
 
                     criteria_values[key] = float( value )
 
