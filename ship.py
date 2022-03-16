@@ -18,7 +18,7 @@ class Docks( object ):
             'compatibility',
             'usability',
             'audience customization',
-        ]
+        ],
     ):
         '''Construct a Docks object that tracks various deliverables.
 
@@ -76,6 +76,57 @@ class Docks( object ):
         '''
 
         return self[name].evaluate( *args, **criteria_values )
+
+    ########################################################################
+    # I/O
+    ########################################################################
+
+    def save( self, filepath, *args, **kwargs ):
+        '''Save the data.
+        Standard file format is *.dock.h5
+
+        Args:
+            filepath (str):
+                File location.
+
+            *args, **kwargs:
+                Passed to verdict.Dict.to_hdf5
+        '''
+
+        self.ships.data.to_hdf5( filepath, *args, **kwargs )
+
+    ########################################################################
+
+    @classmethod
+    def load( cls, filepath, *args, **kwargs ):
+        '''Load the data.
+        Standard file format is *.dock.h5
+
+        Args:
+            filepath (str):
+                File location.
+
+            *args, **kwargs:
+                Passed to verdict.Dict.from_hdf5
+        '''
+
+        # Get data
+        data = verdict.Dict.from_hdf5( filepath, *args, **kwargs )
+
+        # Construct
+        docks = Docks()
+        for name, ship_data in data.items():
+            docks.ships[name] = Ship( name )
+            docks.ships[name].data = ship_data
+
+        return docks
+
+########################################################################
+
+# Convenience wrapper for docks constructor
+def load( *args, **kwargs ):
+    return Docks.load( *args, **kwargs )
+load.__doc__ = Docks.load.__doc__
 
 ########################################################################
 
