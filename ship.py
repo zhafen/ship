@@ -64,7 +64,7 @@ class Docks( object ):
     
     ########################################################################
 
-    def evaluate_ship( self, name, **criteria_values ):
+    def evaluate_ship( self, name, *args, **criteria_values ):
         '''Evaluate the current status of a ship.
 
         Args:
@@ -75,7 +75,7 @@ class Docks( object ):
                 Values for the criteria.
         '''
 
-        return self[name].evaluate( **criteria_values )
+        return self[name].evaluate( *args, **criteria_values )
 
 ########################################################################
 
@@ -128,13 +128,28 @@ class Ship( object ):
 
     ########################################################################
 
-    def evaluate( self, **criteria_values ):
+    def evaluate( self, request_user_input=False, **criteria_values ):
         '''Evaluate the current status of the ship.
 
         Args:
+            request_user_input (bool):
+                If True, ask the user to update the ship values.
+
             criteria_values (dict of floats):
                 Values for the criteria.
         '''
+
+        if request_user_input:
+            print( 'Updating values for Ship {}...'.format( self.name ) )
+            for key, item in self['status'].items():
+                if key not in criteria_values:
+                    value = input( '    {} = {}. New value?'.format( key, item ) )
+                    
+                    # Skip
+                    if value == '':
+                        continue
+
+                    criteria_values[key] = float( value )
 
         # Update the current ship values
         self['status'].update( criteria_values )
@@ -143,3 +158,4 @@ class Ship( object ):
         overall_status = np.prod( self['status'].array() )
 
         return overall_status
+
