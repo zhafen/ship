@@ -71,7 +71,10 @@ class Docks( object ):
             name (str):
                 Name of the deliverable.
 
-            criteria_values (dict of floats):
+            *args:
+                Passed to Ship.evaluate
+
+            **criteria_values (dict of floats):
                 Values for the criteria.
         '''
 
@@ -85,6 +88,9 @@ class Docks( object ):
         Args:
             ship_names (str or list of strs):
                 Names of ships to evaluate. If 'all' then all are evaluated.
+
+            *args:
+                Passed to Ship.evaluate
         '''
 
         if ship_names == 'all':
