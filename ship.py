@@ -191,14 +191,17 @@ class Ship( object ):
         '''
 
         if request_user_input:
-            print( 'Updating values for Ship {}...'.format( self.name ) )
+            print( 'Evaluating ship [ {} ]...'.format( self.name ) )
             for key, item in self['status'].items():
                 if key not in criteria_values:
-                    value = input( '    {} = {}. New value?'.format( key, item ) )
+                    value = input( '    {} = {}. Update ='.format( key, item ) )
                     
                     # Skip
                     if value == '':
                         continue
+                    elif value == 'q':
+                        print( 'Exit code received. Saving and quitting.' )
+                        break
 
                     criteria_values[key] = float( value )
 

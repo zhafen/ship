@@ -128,3 +128,13 @@ class TestEvaluate( unittest.TestCase ):
         npt.assert_allclose( output, 0.5*0.25 )
 
     ########################################################################
+
+    def test_evaluate_ship_input_exit_code( self ):
+
+        with mock.patch( 'builtins.input' ) as mock_input:
+            mock_input.side_effect = [ 'q', 0.25 ]
+
+            output = self.docks.evaluate_ship( 'The Ship', True )
+
+        npt.assert_allclose( output, 0. )
+
