@@ -82,7 +82,7 @@ class Docks( object ):
 
     ########################################################################
 
-    def evaluate( self, ship_names='all', *args ):
+    def evaluate( self, ship_names='all', request_user_input=False, *args ):
         '''Evaluate the current status of all ships.
 
         Args:
@@ -98,7 +98,7 @@ class Docks( object ):
 
         result = {}
         for name in ship_names:
-            result[name] = self.evaluate_ship( name, *args )
+            result[name] = self.evaluate_ship( name, request_user_input, *args )
             if result[name] == 'q':
                 print( 'Exit code received. Exiting...' )
                 return 'q'
