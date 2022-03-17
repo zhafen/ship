@@ -248,14 +248,14 @@ class Ship( object ):
 
     ########################################################################
 
-    def evaluate_audience( self, n, w, tags=None ):
-        '''Evaluate parameters related to the audience for the deliverable.
-        Right now this just stores the data in the right spot...
+    def estimate_audience( self, n, w, tags=None ):
+        '''Estimate parameters related to the audience for the deliverable.
+        Right now this just stores the data in the right spot.
         '''
 
         self['audience'] = {
-            'n': n,
-            'w': w,
+            'n': np.array( n ),
+            'w': np.array( w ),
             'tags': tags,
         }
 
@@ -288,6 +288,18 @@ class Ship( object ):
         where n is the number of audience members identified,
         w is the relevance of each audience member to the user's goals,
         and r is the reception.
+
+        Args:
+            critical_value (float):
+                The necessary value per criteria for which a criteria is
+                acceptable.
         '''
 
-        pass
+        r = self.estimate_reception( critical_value=critical_value )
+        weighted_audience_count = np.sum(
+            self['audience']['n'] * self['audience']['w']
+        )
+        impact = r * weighted_audience_count
+
+        return impact
+        

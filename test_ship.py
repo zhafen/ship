@@ -213,6 +213,27 @@ class TestEstimateImpact( unittest.TestCase ):
             self.docks.evaluate_ship( name, **test_data[name] )
 
         self.ship = self.docks['Chell']
+        self.audience_args = dict(
+            tags = [
+                'T&Z',
+                'friends',
+                'family',
+                'coworkers',
+            ],
+            n = [
+                2,
+                4,
+                3,
+                10,
+            ],
+            # This weighting is based on time
+            w = [
+                24.,
+                1. / 7.,
+                0.25 / 7.,
+                0.25 / 30.,
+            ],
+        )
 
     ########################################################################
 
@@ -225,31 +246,33 @@ class TestEstimateImpact( unittest.TestCase ):
 
     ########################################################################
 
-    def test_evaluate_audience( self ):
+    def test_estimate_audience( self ):
 
-        tags = [
-            'T&Z',
-            'friends',
-            'family',
-            'coworkers',
-        ]
-        n = [
-            2,
-            4,
-            3,
-            10,
-        ]
-        # This weighting is based on time
-        w = [
-            24.,
-            1. / 7.,
-            0.25 / 7.,
-            0.25 / 30.,
-        ]
-        self.ship.evaluate_audience( n, w, tags )
+        self.ship.estimate_audience( **self.audience_args )
 
         actual = self.ship['audience']
 
-        assert actual['tags'] == tags
-        npt.assert_allclose( actual['n'], n )
-        npt.assert_allclose( actual['w'], w )
+        assert actual['tags'] == self.audience_args['tags']
+        npt.assert_allclose( actual['n'], self.audience_args['n'] )
+        npt.assert_allclose( actual['w'], self.audience_args['w'] )
+
+    ########################################################################
+
+    def test_estimate_impact( self ):
+
+        # Setup expected
+        expected_r = ( 10. * 5. ) / 64.
+        n = np.array( self.audience_args['n'] )
+        w = np.array( self.audience_args['w'] )
+        expected_audience = np.sum( n * w )
+        expected = expected_r * expected_audience
+
+        # Setup
+        self.ship.estimate_audience( **self.audience_args )
+
+        # Calculate
+        actual = self.ship.estimate_impact()
+
+        npt.assert_allclose( expected, actual )
+
+
