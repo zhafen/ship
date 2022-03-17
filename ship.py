@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 
 import verdict
@@ -219,8 +220,8 @@ class Ship( object ):
         '''
 
         if request_user_input:
-            print( 'Evaluating ship [ {} ]...'.format( self.name ) )
-            for key, item in self['status'].items():
+            print( 'Evaluating [ {} ]...'.format( self.name ) )
+            for key, item in copy.deepcopy( self['status'].items() ):
                 if key not in criteria_values:
                     value = input( '    {} = {}. Updated ='.format( key, item ) )
                     
@@ -228,8 +229,12 @@ class Ship( object ):
                     if value == '':
                         continue
                     elif value == 'q':
-                        print( 'Exit code received. Saving and quitting.' )
+                        print( '    Exit code received. Saving and quitting.' )
                         return 'q'
+                    elif value == 'd':
+                        print( '    Removing criteria {}'.format( key ) )
+                        del self['status'][key]
+                        continue
 
                     criteria_values[key] = float( value )
 

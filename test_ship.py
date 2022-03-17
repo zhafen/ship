@@ -140,6 +140,18 @@ class TestEvaluate( unittest.TestCase ):
 
     ########################################################################
 
+    def test_evaluate_ship_d_deletes( self ):
+
+        with mock.patch( 'builtins.input' ) as mock_input:
+            mock_input.side_effect = [ 'd', 0.25 ]
+
+            output = self.docks.evaluate_ship( 'The Ship', True )
+
+        npt.assert_allclose( output, 0.25 )
+        assert len( self.docks['The Ship'].criteria() ) == 1
+
+    ########################################################################
+
     def test_evaluate_docks_input( self ):
 
         self.docks.construct_ship( 'The Second Ship' )
@@ -160,7 +172,6 @@ class TestEvaluate( unittest.TestCase ):
 
     ########################################################################
 
-
     def test_evaluate_docks_input_break( self ):
 
         self.docks.construct_ship( 'The Second Ship' )
@@ -172,3 +183,11 @@ class TestEvaluate( unittest.TestCase ):
             output = self.docks.evaluate( 'all', True )
 
         assert output == 'q'
+
+########################################################################
+
+class TestEstimateImpact( unittest.TestCase ):
+
+    def test_estimate_impact( self ):
+
+        assert False, "Create this test."
