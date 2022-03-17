@@ -42,9 +42,15 @@ class TestConstruct( unittest.TestCase ):
     def test_construct_ship( self ):
 
         docks = ship.Docks( criteria=default_criteria )
-        docks.construct_ship( 'The Ship', )
+        docks.construct_ship(
+            'The Ship',
+            description = 'The default test ship.',
+            category = 'code package',
+        )
 
         assert sorted( docks['The Ship'].criteria() ) == default_criteria
+        assert docks['The Ship'].description == 'The default test ship.'
+        assert docks['The Ship'].category == 'code package'
 
 ########################################################################
 
