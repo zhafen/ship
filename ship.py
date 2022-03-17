@@ -241,8 +241,31 @@ class Ship( object ):
         # Update the current ship values
         self['status'].update( criteria_values )
 
-        # Perform the evaluation
+        # Return a number representative of the status.
+        # This number is not typically used elsewhere.
         overall_status = np.prod( self['status'].array() )
-
         return overall_status
 
+    ########################################################################
+
+    def estimate_reception( self, critical_value=8. ):
+        '''Estimate the reception of the deliverable assuming reception is:
+        r = product(
+            ( criteria_value - critical_value ) / ( max_value - min_value )
+        )
+
+        Args:
+            critical_value (float):
+                The necessary value per criteria for which a criteria is
+                acceptable.
+
+        Returns:
+            reception (float):
+                Estimate for the reception.
+        '''
+
+
+        scaled = self['status'] / critical_value
+        reception = np.prod( scaled.array() )
+
+        return reception

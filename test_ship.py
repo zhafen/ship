@@ -10,6 +10,24 @@ import ship
 
 # Patch this object throughout
 default_criteria = [ 'functionality', 'understandability' ]
+test_data = {
+    'Chell': {
+        'functionality': 10,
+        'understandability': 5,
+    },
+    'Pip': {
+        'functionality': 7,
+        'understandability': 3,
+    },
+    'Crouton': {
+        'functionality': 9,
+        'understandaility': 6,
+    },
+    'Melville': {
+        'functionality': 8,
+        'understandability': 9,
+    },
+}
 
 ########################################################################
 
@@ -188,6 +206,17 @@ class TestEvaluate( unittest.TestCase ):
 
 class TestEstimateImpact( unittest.TestCase ):
 
-    def test_estimate_impact( self ):
+    def setUp( self ):
+        self.docks = ship.Docks( criteria=default_criteria )
+        for name in test_data.keys():
+            self.docks.construct_ship( name )
+            self.docks.evaluate_ship( name, **test_data[name] )
 
-        assert False, "Create this test."
+    ########################################################################
+
+    def test_estimate_reception( self ):
+
+        expected = ( 10. * 5. ) / 64.
+        actual = self.docks['Chell'].estimate_reception()
+
+        npt.assert_allclose( expected, actual )
