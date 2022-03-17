@@ -49,8 +49,8 @@ class TestConstruct( unittest.TestCase ):
         )
 
         assert sorted( docks['The Ship'].criteria() ) == default_criteria
-        assert docks['The Ship'].description == 'The default test ship.'
-        assert docks['The Ship'].category == 'code package'
+        assert docks['The Ship'].data['attrs']['description'] == 'The default test ship.'
+        assert docks['The Ship'].data['attrs']['category'] == 'code package'
 
 ########################################################################
 

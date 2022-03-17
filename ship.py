@@ -161,7 +161,7 @@ load.__doc__ = Docks.load.__doc__
 
 class Ship( object ):
 
-    def __init__( self, name, criteria=[], description='', category=None, ):
+    def __init__( self, name, criteria=[], description='', category='', ):
         '''Object for a tracked deliverable.
 
         Args:
@@ -177,10 +177,13 @@ class Ship( object ):
 
         # Store properties
         self.name = name
-        self.description = description
-        self.category = category
         self.data = verdict.Dict({
             'status': {},
+            'attrs': {
+                'name': name,
+                'description': description,
+                'category': category,
+            }
         })
 
         # Initial state
