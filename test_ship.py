@@ -212,11 +212,44 @@ class TestEstimateImpact( unittest.TestCase ):
             self.docks.construct_ship( name )
             self.docks.evaluate_ship( name, **test_data[name] )
 
+        self.ship = self.docks['Chell']
+
     ########################################################################
 
     def test_estimate_reception( self ):
 
         expected = ( 10. * 5. ) / 64.
-        actual = self.docks['Chell'].estimate_reception()
+        actual = self.ship.estimate_reception()
 
         npt.assert_allclose( expected, actual )
+
+    ########################################################################
+
+    def test_evaluate_audience( self ):
+
+        tags = [
+            'T&Z',
+            'friends',
+            'family',
+            'coworkers',
+        ]
+        n = [
+            2,
+            4,
+            3,
+            10,
+        ]
+        # This weighting is based on time
+        w = [
+            24.,
+            1. / 7.,
+            0.25 / 7.,
+            0.25 / 30.,
+        ]
+        self.ship.evaluate_audience( n, w, tags )
+
+        actual = self.ship['audience']
+
+        assert actual['tags'] == tags
+        npt.assert_allclose( actual['n'], n )
+        npt.assert_allclose( actual['w'], w )

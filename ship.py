@@ -248,6 +248,19 @@ class Ship( object ):
 
     ########################################################################
 
+    def evaluate_audience( self, n, w, tags=None ):
+        '''Evaluate parameters related to the audience for the deliverable.
+        Right now this just stores the data in the right spot...
+        '''
+
+        self['audience'] = {
+            'n': n,
+            'w': w,
+            'tags': tags,
+        }
+
+    ########################################################################
+
     def estimate_reception( self, critical_value=8. ):
         '''Estimate the reception of the deliverable assuming reception is:
         r = product( criteria_value / critical_value )
@@ -266,3 +279,15 @@ class Ship( object ):
         reception = np.prod( scaled.array() )
 
         return reception
+
+    ########################################################################
+
+    def estimate_impact( self, critical_value=8. ):
+        '''Estimate the impact of a deliverable, assuming
+        impact = product( n, w, r )
+        where n is the number of audience members identified,
+        w is the relevance of each audience member to the user's goals,
+        and r is the reception.
+        '''
+
+        pass
