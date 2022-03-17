@@ -142,10 +142,37 @@ class TestIO( unittest.TestCase ):
             expected_full[name] = {
                 'status': expected,
             }
-        expected_full.to_hdf5( self.save_fp )
+        expected_full.to_json( self.save_fp )
 
         # Load
         docks = ship.load( self.save_fp )
+
+        # Check
+        for name in names:
+            for key, item in expected.items():
+                npt.assert_allclose( docks[name]['status'][key], item )
+
+    ########################################################################
+
+    def test_load_hdf5( self ):
+
+        # Paramters
+        names = [ 'The Ship', 'Melvulu', 'Chellship', ]
+        expected = {
+            'functionality': 0.5,
+            'understandability': 0.25
+        }
+
+        # Save
+        expected_full = verdict.Dict({})
+        for name in names:
+            expected_full[name] = {
+                'status': expected,
+            }
+        expected_full.to_hdf5( self.hdf5_save_fp )
+
+        # Load
+        docks = ship.load( self.hdf5_save_fp )
 
         # Check
         for name in names:

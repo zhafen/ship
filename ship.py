@@ -123,6 +123,7 @@ class Docks( object ):
                 Passed to verdict.Dict.to_hdf5
         '''
 
+        # Identify filetype to choose how to save
         filetype = os.path.splitext( filepath )[1]
 
         if filetype == '.json':
@@ -145,8 +146,14 @@ class Docks( object ):
                 Passed to verdict.Dict.from_hdf5
         '''
 
+        # Identify filetype to choose how to load
+        filetype = os.path.splitext( filepath )[1]
+
         # Get data
-        data = verdict.Dict.from_hdf5( filepath, *args, **kwargs )
+        if filetype == '.json':
+            data = verdict.Dict.from_json( filepath, *args, **kwargs )
+        elif filetype in [ '.hdf5', '.h5' ]:
+            data = verdict.Dict.from_hdf5( filepath, *args, **kwargs )
 
         # Construct
         docks = Docks()
