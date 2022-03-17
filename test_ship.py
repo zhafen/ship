@@ -58,17 +58,20 @@ class TestIO( unittest.TestCase ):
 
     def setUp( self ):
 
-        self.save_fp = './test.dock.h5'
+        self.save_fp = './test.dock.json'
+        self.hdf5_save_fp = './test.dock.hdf5'
 
-        if os.path.exists( self.save_fp ):
-            os.remove( self.save_fp )
+        for fp in [ self.save_fp, self.hdf5_save_fp ]:
+            if os.path.exists( fp ):
+                os.remove( fp )
 
     ########################################################################
 
     def tearDown( self ):
 
-        if os.path.exists( self.save_fp ):
-            os.remove( self.save_fp )
+        for fp in [ self.save_fp, self.hdf5_save_fp ]:
+            if os.path.exists( fp ):
+                os.remove( fp )
 
     ########################################################################
 
@@ -91,7 +94,33 @@ class TestIO( unittest.TestCase ):
         self.docks.save( self.save_fp )
 
         # Check
-        actual = verdict.Dict.from_hdf5( self.save_fp )
+        actual = verdict.Dict.from_json( self.save_fp )
+        for name in names:
+            for key, item in expected.items():
+                npt.assert_allclose( actual[name]['status'][key], item )
+
+    ########################################################################
+
+    def test_save_hdf5( self ):
+
+        # Parameters
+        names = [ 'The Ship', 'Melvulu', 'Chellship', ]
+        expected = {
+            'functionality': 0.5,
+            'understandability': 0.25
+        }
+
+        # Setup
+        self.docks = ship.Docks( criteria=default_criteria )
+        for name in names:
+            self.docks.construct_ship( name )
+            self.docks[name]['status'] = expected
+
+        # Save
+        self.docks.save( self.hdf5_save_fp )
+
+        # Check
+        actual = verdict.Dict.from_hdf5( self.hdf5_save_fp )
         for name in names:
             for key, item in expected.items():
                 npt.assert_allclose( actual[name]['status'][key], item )

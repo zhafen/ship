@@ -1,5 +1,6 @@
 import copy
 import numpy as np
+import os
 
 import verdict
 
@@ -122,7 +123,12 @@ class Docks( object ):
                 Passed to verdict.Dict.to_hdf5
         '''
 
-        self.ships.data.to_hdf5( filepath, *args, **kwargs )
+        filetype = os.path.splitext( filepath )[1]
+
+        if filetype == '.json':
+            self.ships.data.to_json( filepath, *args, **kwargs )
+        elif filetype in [ '.hdf5', '.h5' ]:
+            self.ships.data.to_hdf5( filepath, *args, **kwargs )
 
     ########################################################################
 
