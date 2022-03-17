@@ -250,9 +250,7 @@ class Ship( object ):
 
     def estimate_reception( self, critical_value=8. ):
         '''Estimate the reception of the deliverable assuming reception is:
-        r = product(
-            ( criteria_value - critical_value ) / ( max_value - min_value )
-        )
+        r = product( criteria_value / critical_value )
 
         Args:
             critical_value (float):
@@ -263,7 +261,6 @@ class Ship( object ):
             reception (float):
                 Estimate for the reception.
         '''
-
 
         scaled = self['status'] / critical_value
         reception = np.prod( scaled.array() )
