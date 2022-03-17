@@ -2,6 +2,9 @@ import copy
 import numpy as np
 import os
 
+import matplotlib
+import matplotlib.pyplot as plt
+
 import verdict
 
 ########################################################################
@@ -162,6 +165,105 @@ class Docks( object ):
             docks.ships[name].data = ship_data
 
         return docks
+
+    ########################################################################
+    # Plotting
+    ########################################################################
+
+    def plot_docks( self, ax=None, critical_value=8., rotation=-45., background_linecolor='.4', ):
+        
+        if ax is None:
+            fig = plt.figure()
+            ax = plt.gca()
+            
+        # Get data
+        reception = self.ships.estimate_reception( critical_value=critical_value )
+        reception_arr = reception.array()
+        xs = np.arange( reception_arr.size )
+        
+        # Actual plot
+        ax.scatter(
+            xs,
+            reception_arr,
+            color = 'k',
+            marker = 'd',
+            zorder = 2,
+        )
+        
+        # Draw relative line
+        ax.axhline(
+            1,
+            linewidth = 1,
+            color = background_linecolor,
+            zorder = -1,
+        )
+        
+        # Set xtick labels to sim names
+        ax.xaxis.set_ticks( xs )
+        ax.xaxis.set_ticklabels( reception.keys_array(), rotation=rotation, va='top', ha='left', )
+        ax.grid(
+            axis = 'x',
+            which = 'major',
+            zorder = -1,
+        )
+        
+        # Set scale
+        ax.set_yscale( 'log' )
+        
+        ax.set_ylabel( r'reception' )
+
+    ########################################################################
+
+    def plot_ship( self, name, ax=None, critical_value=8., rotation=-45., background_linecolor='.4', ):
+    
+        if ax is None:
+            fig = plt.figure()
+            ax = plt.gca()
+            
+        # Get data
+        criteria = self.ships[name]['status'] / critical_value
+        criteria_values = criteria.array()
+        xs = np.arange( criteria_values.size )
+        
+        # Actual plot
+        ax.scatter(
+            xs,
+            criteria_values,
+            color = 'k',
+            zorder = 10,
+        )
+        
+        # Draw relative line
+        ax.axhline(
+            1,
+            linewidth = 1,
+            color = 'k',
+            zorder = 9,
+        )
+        
+        # Set scale
+        ax.set_yscale( 'log' )
+        
+        ax.tick_params( left=False, labelleft=False, which='minor' )
+        
+        # Set xtick labels to sim names
+        ax.xaxis.set_ticks( xs )
+        ax.xaxis.set_ticklabels( criteria.keys_array(), rotation=rotation, va='top', ha='left', )
+        
+        # Set yticks to values
+        ytick_labels = np.arange( 1, 11 )
+        ytick_values = ytick_labels / critical_value
+        ax.set_yticks( ytick_values )
+        ax.set_yticklabels( ytick_labels )
+        ax.set_ylim( ytick_values[0], ytick_values[-1], )
+        
+        # Setup gridlines
+        ax.grid(
+            which = 'major',
+            zorder = -2,
+        )
+        
+        ax.set_ylabel( r'criteria value' )
 
 ########################################################################
 
