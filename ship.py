@@ -392,14 +392,13 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_audience( self, n, w, tags=None ):
+    def estimate_audience( self, tags, n ):
         '''Estimate parameters related to the audience for the deliverable.
         Right now this just stores the data in the right spot.
         '''
 
         self['audience'] = {
             'n': np.array( n ),
-            'w': np.array( w ),
             'tags': tags,
         }
 

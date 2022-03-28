@@ -1,0 +1,10 @@
+audiences:
+    subfield experts: 30
+    field experts: 10
+    astrophysicists: 3
+    physicists: 1
+    other academics: 0.2
+    general public: 0.05
+    theorists: 15
+    observers: 10
+    coworkers: 10

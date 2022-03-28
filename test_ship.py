@@ -277,9 +277,9 @@ class TestEstimateImpact( unittest.TestCase ):
         self.ship = self.docks['Chell']
         self.audience_args = dict(
             tags = [
-                'T&Z',
-                'friends',
-                'family',
+                'subfield experts',
+                'field experts',
+                'astrophysicists',
                 'coworkers',
             ],
             n = [
@@ -288,14 +288,9 @@ class TestEstimateImpact( unittest.TestCase ):
                 3,
                 10,
             ],
-            # This weighting is based on time
-            w = [
-                24.,
-                1. / 7.,
-                0.25 / 7.,
-                0.25 / 30.,
-            ],
         )
+
+        self.expected_weights = [ 30, 10, 3, 10 ]
 
     ########################################################################
 
@@ -316,7 +311,6 @@ class TestEstimateImpact( unittest.TestCase ):
 
         assert actual['tags'] == self.audience_args['tags']
         npt.assert_allclose( actual['n'], self.audience_args['n'] )
-        npt.assert_allclose( actual['w'], self.audience_args['w'] )
 
     ########################################################################
 
