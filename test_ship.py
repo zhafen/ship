@@ -288,6 +288,12 @@ class TestEstimateImpact( unittest.TestCase ):
                 3,
                 10,
             ],
+            suitability = [
+                1,
+                0.5,
+                0.1,
+                0.1,
+            ]
         )
 
         self.expected_weights = [ 30, 10, 3, 10 ]
@@ -311,6 +317,7 @@ class TestEstimateImpact( unittest.TestCase ):
 
         assert actual['tags'] == self.audience_args['tags']
         npt.assert_allclose( actual['n'], self.audience_args['n'] )
+        npt.assert_allclose( actual['suitability'], self.audience_args['suitability'] )
 
     ########################################################################
 
@@ -319,8 +326,9 @@ class TestEstimateImpact( unittest.TestCase ):
         # Setup expected
         expected_r = ( 10. * 5. ) / 64.
         n = np.array( self.audience_args['n'] )
-        w = np.array( self.audience_args['w'] )
-        expected_audience = np.sum( n * w )
+        s = np.array( self.audience_args['suitability'] )
+        w = np.array( self.expected_weights )
+        expected_audience = np.sum( n * w * s )
         expected = expected_r * expected_audience
 
         # Setup

@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import os
+import yaml
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -392,7 +393,7 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_audience( self, tags, n ):
+    def estimate_audience( self, tags, n, suitability ):
         '''Estimate parameters related to the audience for the deliverable.
         Right now this just stores the data in the right spot.
         '''
@@ -400,6 +401,7 @@ class Ship( object ):
         self['audience'] = {
             'n': np.array( n ),
             'tags': tags,
+            'suitability': suitability,
         }
 
     ########################################################################
@@ -438,10 +440,16 @@ class Ship( object ):
                 acceptable.
         '''
 
+        with open( 'config.yaml', 'r' ) as stream:
+            config = yaml.safe_load( stream )
+
         r = self.estimate_reception( critical_value=critical_value )
-        weighted_audience_count = np.sum(
-            self['audience']['n'] * self['audience']['w']
-        )
+        weighted_audience_count = 0.
+        for i, audience_key in enumerate( self['audience']['tags'] ):
+            n = self['audience']['n'][i]
+            suitability = self['audience']['suitability'][i]
+            weight = config['audiences'][audience_key]
+            weighted_audience_count += n * suitability * weight
         impact = r * weighted_audience_count
 
         return impact
