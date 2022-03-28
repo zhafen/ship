@@ -326,6 +326,12 @@ class Ship( object ):
             }
         })
 
+        # Get config file
+        config_dir = os.path.abspath( os.path.dirname( __file__ ) )
+        config_fp = os.path.join( config_dir, 'config.yaml' )
+        with open( config_fp, 'r' ) as stream:
+            self.config = yaml.safe_load( stream )
+
         # Initial state
         for key in criteria:
             self.data['status'][key] = 0.
@@ -393,15 +399,33 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_audience( self, tags, n, suitability ):
+    def estimate_audience( self, tags=[], n=[], suitability=[], request_user_input=False ):
         '''Estimate parameters related to the audience for the deliverable.
         Right now this just stores the data in the right spot.
         '''
 
+        if request_user_input:
+            print( 'Estimating audiences for [ {} ]...'.format( self.name ) )
+            for key in self.config['audiences'].keys():
+                value = input( '    n for {} = ?'.format( key ) )
+                    
+                # Skip
+                if value == '':
+                    print( '        None.' )
+                    continue
+                elif value == 'q':
+                    print( '    Exit code received. Saving and quitting.' )
+                    return 'q'
+                tags.append( key )
+                n.append( int( value ) )
+                
+                value = input( '    suitability for {} = ?'.format( key ) )
+                suitability.append( float( value ) )
+
         self['audience'] = {
             'n': np.array( n ),
             'tags': tags,
-            'suitability': suitability,
+            'suitability': np.array( suitability ),
         }
 
     ########################################################################
@@ -440,15 +464,12 @@ class Ship( object ):
                 acceptable.
         '''
 
-        with open( 'config.yaml', 'r' ) as stream:
-            config = yaml.safe_load( stream )
-
         r = self.estimate_reception( critical_value=critical_value )
         weighted_audience_count = 0.
         for i, audience_key in enumerate( self['audience']['tags'] ):
             n = self['audience']['n'][i]
             suitability = self['audience']['suitability'][i]
-            weight = config['audiences'][audience_key]
+            weight = self.config['audiences'][audience_key]
             weighted_audience_count += n * suitability * weight
         impact = r * weighted_audience_count
 
