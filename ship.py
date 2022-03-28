@@ -200,7 +200,12 @@ class Docks( object ):
         
         # Set xtick labels to sim names
         ax.xaxis.set_ticks( xs )
-        ax.xaxis.set_ticklabels( reception.keys_array(), rotation=rotation, va='top', ha='left', )
+        ax.xaxis.set_ticklabels(
+            reception.keys_array(),
+            rotation=rotation,
+            va='top',
+            ha='left',
+        )
         ax.grid(
             axis = 'x',
             which = 'major',
@@ -214,7 +219,13 @@ class Docks( object ):
 
     ########################################################################
 
-    def plot_ship( self, name, ax=None, critical_value=8., rotation=-45., background_linecolor='.4', ):
+    def plot_ship(
+        self,
+        name,
+        ax=None,
+        critical_value=8.,
+        rotation=-45.,
+    ):
     
         if ax is None:
             fig = plt.figure()
@@ -261,6 +272,19 @@ class Docks( object ):
         ax.grid(
             which = 'major',
             zorder = -2,
+        )
+
+        # Note reception value
+        reception = self[name].estimate_reception( critical_value=critical_value ) 
+        ax.annotate(
+            text = r'$r =$' + '{:.2g}'.format( reception ),
+            xy = ( 1, 1 ),
+            xycoords = 'axes fraction',
+            xytext = ( 5, -5 ),
+            textcoords = 'offset points',
+            va = 'top',
+            ha = 'left',
+            fontsize = 16,
         )
         
         ax.set_ylabel( r'criteria value' )
