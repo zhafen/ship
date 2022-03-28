@@ -319,6 +319,11 @@ class Ship( object ):
         self.name = name
         self.data = verdict.Dict({
             'status': {},
+            'audience': {
+                'tags': [],
+                'n': [],
+                'suitability': [],
+            },
             'attrs': {
                 'name': name,
                 'description': description,
@@ -406,20 +411,46 @@ class Ship( object ):
 
         if request_user_input:
             print( 'Estimating audiences for [ {} ]...'.format( self.name ) )
-            for key in self.config['audiences'].keys():
-                value = input( '    n for {} = ?'.format( key ) )
+            used_tags = (
+                list( self['audience']['tags'] ) +
+                list( self.config['audiences'].keys() )
+            )
+            for i, key in enumerate( used_tags ):
+
+                # See if there's an existing value
+                if key in self['audiences']['tags']:
+                    n_i = self['audiences']['n'][i]
+                    suitability_i = self['audiences']['suitability'][i]
+                else:
+                    n_i = 0
+                    suitability_i = 0.
+
+                value = input( '    n for {} = {}'.format( key, n_i ) )
                     
-                # Skip
+                # Use existing or quit
                 if value == '':
-                    print( '        None.' )
+                    value = n_i
                     continue
                 elif value == 'q':
-                    print( '    Exit code received. Saving and quitting.' )
+                    print( '    Exit code received. Quitting.' )
                     return 'q'
-                tags.append( key )
-                n.append( int( value ) )
+
+                # Skip
+                n_i = int( value )
+                if n_i == 0:
+                    continue
                 
                 value = input( '    suitability for {} = ?'.format( key ) )
+                if value == '':
+                    value = suitability_i
+                    continue
+                elif value == 'q':
+                    print( '    Exit code received. Quitting.' )
+                    return 'q'
+
+                # Store
+                tags.append( key )
+                n.append( n_i )
                 suitability.append( float( value ) )
 
         self['audience'] = {
