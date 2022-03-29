@@ -305,9 +305,9 @@ class TestEstimateAudience( unittest.TestCase ):
 
     ########################################################################
 
-    def test_estimate_audience( self ):
+    def test_evaluate_audience( self ):
 
-        self.ship.estimate_audience( **self.audience_args )
+        self.ship.evaluate_audience( **self.audience_args )
 
         actual = self.ship['audience']
 
@@ -317,12 +317,12 @@ class TestEstimateAudience( unittest.TestCase ):
 
     ########################################################################
 
-    # def test_estimate_audience_input( self ):
+    # def test_evaluate_audience_input( self ):
 
     #     with mock.patch( 'builtins.input' ) as mock_input:
     #         mock_input.side_effect = self.default_side_effect
 
-    #         output = self.ship.estimate_audience( True )
+    #         output = self.ship.evaluate_audience( True )
 
     #     expected = {
     #         'n': 
@@ -441,7 +441,7 @@ class TestEstimateImpact( unittest.TestCase ):
         expected = expected_r * expected_audience
 
         # Setup
-        self.ship.estimate_audience( **self.audience_args )
+        self.ship.evaluate_audience( **self.audience_args )
 
         # Calculate
         actual = self.ship.estimate_impact()

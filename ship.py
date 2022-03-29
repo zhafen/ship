@@ -411,7 +411,7 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_audience( self, tags=[], n=[], suitability=[], request_user_input=False ):
+    def evaluate_audience( self, tags=[], n=[], suitability=[], request_user_input=False ):
         '''Estimate parameters related to the audience for the deliverable.
         Right now this just stores the data in the right spot.
         '''
@@ -423,6 +423,9 @@ class Ship( object ):
                 list( self.config['audiences']['count'].keys() )
             )
             for i, key in enumerate( used_tags ):
+
+                if key in tags:
+                    continue
 
                 # See if there's an existing value
                 if key in self['audience']['tags']:
