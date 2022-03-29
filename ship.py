@@ -471,6 +471,25 @@ class Ship( object ):
 
     ########################################################################
 
+    def estimate_audience( self ):
+        '''Estimate the impact of a deliverable, assuming
+        weighted audience = product( n, s, w )
+        where n is the number of audience members identified,
+        w is the relevance of each audience member to the user's goals,
+        and s is the suitability of the ship to each audience.
+        '''
+
+        weighted_audience = 0.
+        for i, audience_key in enumerate( self['audience']['tags'] ):
+            n = self['audience']['n'][i]
+            suitability = self['audience']['suitability'][i]
+            weight = self.config['audiences']['weight'][audience_key]
+            weighted_audience += n * suitability * weight
+
+        return weighted_audience
+
+    ########################################################################
+
     def estimate_reception( self, critical_value=8. ):
         '''Estimate the reception of the deliverable assuming reception is:
         r = product( criteria_value / critical_value )
@@ -506,13 +525,7 @@ class Ship( object ):
         '''
 
         r = self.estimate_reception( critical_value=critical_value )
-        weighted_audience_count = 0.
-        for i, audience_key in enumerate( self['audience']['tags'] ):
-            n = self['audience']['n'][i]
-            suitability = self['audience']['suitability'][i]
-            weight = self.config['audiences']['weight'][audience_key]
-            weighted_audience_count += n * suitability * weight
-        impact = r * weighted_audience_count
+        impact = r * self.estimate_audience()
 
         return impact
         
