@@ -35,22 +35,22 @@ class TestConstruct( unittest.TestCase ):
 
     def test_init( self ):
 
-        docks = ship.Docks()
+        fleet = ship.Fleet()
 
     ########################################################################
 
     def test_construct_ship( self ):
 
-        docks = ship.Docks( criteria=default_criteria )
-        docks.construct_ship(
+        fleet = ship.Fleet( criteria=default_criteria )
+        fleet.construct_ship(
             'The Ship',
             description = 'The default test ship.',
             category = 'code package',
         )
 
-        assert sorted( docks['The Ship'].criteria() ) == default_criteria
-        assert docks['The Ship'].data['attrs']['description'] == 'The default test ship.'
-        assert docks['The Ship'].data['attrs']['category'] == 'code package'
+        assert sorted( fleet['The Ship'].criteria() ) == default_criteria
+        assert fleet['The Ship'].data['attrs']['description'] == 'The default test ship.'
+        assert fleet['The Ship'].data['attrs']['category'] == 'code package'
 
 ########################################################################
 
@@ -85,13 +85,13 @@ class TestIO( unittest.TestCase ):
         }
 
         # Setup
-        self.docks = ship.Docks( criteria=default_criteria )
+        self.fleet = ship.Fleet( criteria=default_criteria )
         for name in names:
-            self.docks.construct_ship( name )
-            self.docks[name]['status'] = expected
+            self.fleet.construct_ship( name )
+            self.fleet[name]['status'] = expected
 
         # Save
-        self.docks.save( self.save_fp )
+        self.fleet.save( self.save_fp )
 
         # Check
         actual = verdict.Dict.from_json( self.save_fp )
@@ -111,13 +111,13 @@ class TestIO( unittest.TestCase ):
         }
 
         # Setup
-        self.docks = ship.Docks( criteria=default_criteria )
+        self.fleet = ship.Fleet( criteria=default_criteria )
         for name in names:
-            self.docks.construct_ship( name )
-            self.docks[name]['status'] = expected
+            self.fleet.construct_ship( name )
+            self.fleet[name]['status'] = expected
 
         # Save
-        self.docks.save( self.hdf5_save_fp )
+        self.fleet.save( self.hdf5_save_fp )
 
         # Check
         actual = verdict.Dict.from_hdf5( self.hdf5_save_fp )
@@ -145,12 +145,12 @@ class TestIO( unittest.TestCase ):
         expected_full.to_json( self.save_fp )
 
         # Load
-        docks = ship.load( self.save_fp )
+        fleet = ship.load( self.save_fp )
 
         # Check
         for name in names:
             for key, item in expected.items():
-                npt.assert_allclose( docks[name]['status'][key], item )
+                npt.assert_allclose( fleet[name]['status'][key], item )
 
     ########################################################################
 
@@ -172,12 +172,12 @@ class TestIO( unittest.TestCase ):
         expected_full.to_hdf5( self.hdf5_save_fp )
 
         # Load
-        docks = ship.load( self.hdf5_save_fp )
+        fleet = ship.load( self.hdf5_save_fp )
 
         # Check
         for name in names:
             for key, item in expected.items():
-                npt.assert_allclose( docks[name]['status'][key], item )
+                npt.assert_allclose( fleet[name]['status'][key], item )
 
 ########################################################################
 
@@ -185,9 +185,9 @@ class TestEvaluate( unittest.TestCase ):
 
     def setUp( self ):
 
-        self.docks = ship.Docks( criteria=default_criteria )
-        self.docks.construct_ship( 'The Ship' )
-        self.ship = self.docks['The Ship']
+        self.fleet = ship.Fleet( criteria=default_criteria )
+        self.fleet.construct_ship( 'The Ship' )
+        self.ship = self.fleet['The Ship']
 
     ########################################################################
 
@@ -229,19 +229,19 @@ class TestEvaluate( unittest.TestCase ):
             output = self.ship.evaluate( True )
 
         npt.assert_allclose( output, 0.25 )
-        assert len( self.docks['The Ship'].criteria() ) == 1
+        assert len( self.fleet['The Ship'].criteria() ) == 1
 
     ########################################################################
 
-    def test_evaluate_docks_input( self ):
+    def test_evaluate_fleet_input( self ):
 
-        self.docks.construct_ship( 'The Second Ship' )
-        self.docks.construct_ship( 'The Third Ship' )
+        self.fleet.construct_ship( 'The Second Ship' )
+        self.fleet.construct_ship( 'The Third Ship' )
 
         with mock.patch( 'builtins.input' ) as mock_input:
             mock_input.side_effect = [  0.5, 0.1, 0.2, 0.1, 0., 1., ]
 
-            output = self.docks.evaluate( 'all', True )
+            output = self.fleet.evaluate( 'all', True )
 
         expected = {
             'The Ship': 0.05,
@@ -253,15 +253,15 @@ class TestEvaluate( unittest.TestCase ):
 
     ########################################################################
 
-    def test_evaluate_docks_input_break( self ):
+    def test_evaluate_fleet_input_break( self ):
 
-        self.docks.construct_ship( 'The Second Ship' )
-        self.docks.construct_ship( 'The Third Ship' )
+        self.fleet.construct_ship( 'The Second Ship' )
+        self.fleet.construct_ship( 'The Third Ship' )
 
         with mock.patch( 'builtins.input' ) as mock_input:
             mock_input.side_effect = [  0.5, 0.1, 'q', 0.1 ]
 
-            output = self.docks.evaluate( 'all', True )
+            output = self.fleet.evaluate( 'all', True )
 
         assert output == 'q'
 
@@ -271,9 +271,9 @@ class TestEstimateAudience( unittest.TestCase ):
 
     def setUp( self ):
 
-        self.docks = ship.Docks( criteria=default_criteria )
-        self.docks.construct_ship( 'The Ship' )
-        self.ship = self.docks['The Ship']
+        self.fleet = ship.Fleet( criteria=default_criteria )
+        self.fleet.construct_ship( 'The Ship' )
+        self.ship = self.fleet['The Ship']
 
         self.audience_args = dict(
             tags = [
@@ -349,19 +349,19 @@ class TestEstimateAudience( unittest.TestCase ):
     #         output = self.ship.evaluate( True )
 
     #     npt.assert_allclose( output, 0.25 )
-    #     assert len( self.docks['The Ship'].criteria() ) == 1
+    #     assert len( self.fleet['The Ship'].criteria() ) == 1
 
     # ########################################################################
 
-    # def test_evaluate_docks_input( self ):
+    # def test_evaluate_fleet_input( self ):
 
-    #     self.docks.construct_ship( 'The Second Ship' )
-    #     self.docks.construct_ship( 'The Third Ship' )
+    #     self.fleet.construct_ship( 'The Second Ship' )
+    #     self.fleet.construct_ship( 'The Third Ship' )
 
     #     with mock.patch( 'builtins.input' ) as mock_input:
     #         mock_input.side_effect = [  0.5, 0.1, 0.2, 0.1, 0., 1., ]
 
-    #         output = self.docks.evaluate( 'all', True )
+    #         output = self.fleet.evaluate( 'all', True )
 
     #     expected = {
     #         'The Ship': 0.05,
@@ -373,15 +373,15 @@ class TestEstimateAudience( unittest.TestCase ):
 
     # ########################################################################
 
-    # def test_evaluate_docks_input_break( self ):
+    # def test_evaluate_fleet_input_break( self ):
 
-    #     self.docks.construct_ship( 'The Second Ship' )
-    #     self.docks.construct_ship( 'The Third Ship' )
+    #     self.fleet.construct_ship( 'The Second Ship' )
+    #     self.fleet.construct_ship( 'The Third Ship' )
 
     #     with mock.patch( 'builtins.input' ) as mock_input:
     #         mock_input.side_effect = [  0.5, 0.1, 'q', 0.1 ]
 
-    #         output = self.docks.evaluate( 'all', True )
+    #         output = self.fleet.evaluate( 'all', True )
 
     #     assert output == 'q'
 
@@ -390,12 +390,12 @@ class TestEstimateAudience( unittest.TestCase ):
 class TestEstimateImpact( unittest.TestCase ):
 
     def setUp( self ):
-        self.docks = ship.Docks( criteria=default_criteria )
+        self.fleet = ship.Fleet( criteria=default_criteria )
         for name in test_data.keys():
-            self.docks.construct_ship( name )
-            self.docks[name].evaluate( **test_data[name] )
+            self.fleet.construct_ship( name )
+            self.fleet[name].evaluate( **test_data[name] )
 
-        self.ship = self.docks['Chell']
+        self.ship = self.fleet['Chell']
         self.audience_args = dict(
             tags = [
                 'subfield experts',

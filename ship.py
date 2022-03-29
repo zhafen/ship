@@ -10,7 +10,7 @@ import verdict
 
 ########################################################################
 
-class Docks( object ):
+class Fleet( object ):
 
     def __init__(
         self,
@@ -26,7 +26,7 @@ class Docks( object ):
             'audience customization',
         ],
     ):
-        '''Construct a Docks object that tracks various deliverables.
+        '''Construct a fleet object that tracks various deliverables.
 
         Args:
             criteria (list of strs):
@@ -93,30 +93,31 @@ class Docks( object ):
 
         return result
 
-    ########################################################################
+    # ########################################################################
 
-    def evaluate_audience( self, ship_names='all', request_user_input=True, ):
-        '''Estimate the audience of all ships.
+    # DELETE
+    # def evaluate_audience( self, ship_names='all', request_user_input=True, ):
+    #     '''Estimate the audience of all ships.
 
-        Args:
-            ship_names (str or list of strs):
-                Names of ships to evaluate. If 'all' then all are evaluated.
+    #     Args:
+    #         ship_names (str or list of strs):
+    #             Names of ships to evaluate. If 'all' then all are evaluated.
 
-            *args:
-                Passed to Ship.evaluate_audience
-        '''
+    #         *args:
+    #             Passed to Ship.evaluate_audience
+    #     '''
 
-        if ship_names == 'all':
-            ship_names = list( self.ships.keys() )
+    #     if ship_names == 'all':
+    #         ship_names = list( self.ships.keys() )
 
-        result = {}
-        for name in ship_names:
-            result[name] = self[name].evaluate_audience( request_user_input=request_user_input )
-            if result[name] == 'q':
-                print( 'Exit code received. Exiting...' )
-                return 'q'
+    #     result = {}
+    #     for name in ship_names:
+    #         result[name] = self[name].evaluate_audience( request_user_input=request_user_input )
+    #         if result[name] == 'q':
+    #             print( 'Exit code received. Exiting...' )
+    #             return 'q'
 
-        return result
+    #     return result
 
     ########################################################################
     # I/O
@@ -167,18 +168,18 @@ class Docks( object ):
             data = verdict.Dict.from_hdf5( filepath, *args, **kwargs )
 
         # Construct
-        docks = Docks()
+        fleet = fleet()
         for name, ship_data in data.items():
-            docks.ships[name] = Ship( name )
-            docks.ships[name].data = ship_data
+            fleet.ships[name] = Ship( name )
+            fleet.ships[name].data = ship_data
 
-        return docks
+        return fleet
 
     ########################################################################
     # Plotting
     ########################################################################
 
-    def plot_docks(
+    def plot_fleet(
         self,
         y_axis = 'impact',
         ax = None,
@@ -323,10 +324,10 @@ class Docks( object ):
 
 ########################################################################
 
-# Convenience wrapper for docks constructor
+# Convenience wrapper for fleet constructor
 def load( *args, **kwargs ):
-    return Docks.load( *args, **kwargs )
-load.__doc__ = Docks.load.__doc__
+    return fleet.load( *args, **kwargs )
+load.__doc__ = fleet.load.__doc__
 
 ########################################################################
 
