@@ -1,0 +1,10 @@
+Name,Weight,Default Compatibility,Default Count
+Subfield Experts,30,0.9,50
+Field Experts,10,0.6,200
+Astrophysicists,3,0.4,200
+Physicists,1,0.2,50
+Other Academics,0.2,0.1,10
+General Public,0.05,0.05,50
+Theorists,15,0.8,0
+Observers / Experimentalists,10,0.5,0
+Coworkers,10,0.4,20

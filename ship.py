@@ -96,7 +96,7 @@ class Fleet( object ):
     # ########################################################################
 
     # DELETE
-    # def evaluate_audience( self, ship_names='all', request_user_input=True, ):
+    # def evaluate_market( self, ship_names='all', request_user_input=True, ):
     #     '''Estimate the audience of all ships.
 
     #     Args:
@@ -104,7 +104,7 @@ class Fleet( object ):
     #             Names of ships to evaluate. If 'all' then all are evaluated.
 
     #         *args:
-    #             Passed to Ship.evaluate_audience
+    #             Passed to Ship.evaluate_market
     #     '''
 
     #     if ship_names == 'all':
@@ -112,7 +112,7 @@ class Fleet( object ):
 
     #     result = {}
     #     for name in ship_names:
-    #         result[name] = self[name].evaluate_audience( request_user_input=request_user_input )
+    #         result[name] = self[name].evaluate_market( request_user_input=request_user_input )
     #         if result[name] == 'q':
     #             print( 'Exit code received. Exiting...' )
     #             return 'q'
@@ -326,8 +326,8 @@ class Fleet( object ):
 
 # Convenience wrapper for fleet constructor
 def load( *args, **kwargs ):
-    return fleet.load( *args, **kwargs )
-load.__doc__ = fleet.load.__doc__
+    return Fleet.load( *args, **kwargs )
+load.__doc__ = Fleet.load.__doc__
 
 ########################################################################
 
@@ -351,11 +351,7 @@ class Ship( object ):
         self.name = name
         self.data = verdict.Dict({
             'status': {},
-            'audience': {
-                'tags': [],
-                'n': [],
-                'suitability': [],
-            },
+            'audience': {},
             'attrs': {
                 'name': name,
                 'description': description,
@@ -436,7 +432,7 @@ class Ship( object ):
 
     ########################################################################
 
-    def evaluate_audience( self, tags=[], n=[], suitability=[], request_user_input=False ):
+    def evaluate_market( self, request_user_input=False, **compatibility_values ):
         '''Estimate parameters related to the audience for the deliverable.
         Right now this just stores the data in the right spot.
         '''
@@ -444,7 +440,7 @@ class Ship( object ):
         if request_user_input:
             print( 'Estimating audiences for [ {} ]...'.format( self.name ) )
             used_tags = (
-                list( self['audience']['tags'] ) +
+                list( self['audience'].keys() ) +
                 list( self.config['audiences']['count'].keys() )
             )
             for i, key in enumerate( used_tags ):
@@ -454,11 +450,10 @@ class Ship( object ):
 
                 # See if there's an existing value
                 if key in self['audience']['tags']:
-                    n_i = self['audience']['n'][i]
-                    suitability_i = self['audience']['suitability'][i]
+                    compatibility_i = self['audience']['compatibility'][i]
                 else:
                     n_i = self.config['audiences']['count'][key]
-                    suitability_i = self.config['audiences']['suitability'][key]
+                    compatibility_i = self.config['audiences']['compatibility'][key]
 
                 value = input( '    n for {} = {}'.format( key, n_i ) )
                     
@@ -474,9 +469,9 @@ class Ship( object ):
                 if n_i == 0:
                     continue
                 
-                value = input( '    suitability for {} = {}'.format( key, suitability_i ) )
+                value = input( '    compatibility for {} = {}'.format( key, compatibility_i ) )
                 if value == '':
-                    value = suitability_i
+                    value = compatibility_i
                 elif value == 'q':
                     print( '    Exit code received. Quitting.' )
                     return 'q'
@@ -484,34 +479,32 @@ class Ship( object ):
                 # Store
                 tags.append( key )
                 n.append( n_i )
-                suitability.append( float( value ) )
+                compatibility.append( float( value ) )
 
         self['audience'] = {
-            'n': np.array( n ),
-            'tags': tags,
-            'suitability': np.array( suitability ),
         }
 
         return self['audience']
 
     ########################################################################
 
-    def estimate_audience( self ):
-        '''Estimate the impact of a deliverable, assuming
-        weighted audience = product( n, s, w )
-        where n is the number of audience members identified,
-        w is the relevance of each audience member to the user's goals,
-        and s is the suitability of the ship to each audience.
-        '''
+    # BUYIN
+    # def estimate_audience( self ):
+    #     '''Estimate the impact of a deliverable, assuming
+    #     weighted audience = product( n, s, w )
+    #     where n is the number of audience members identified,
+    #     w is the relevance of each audience member to the user's goals,
+    #     and s is the compatibility of the ship to each audience.
+    #     '''
 
-        weighted_audience = 0.
-        for i, audience_key in enumerate( self['audience']['tags'] ):
-            n = self['audience']['n'][i]
-            suitability = self['audience']['suitability'][i]
-            weight = self.config['audiences']['weight'][audience_key]
-            weighted_audience += n * suitability * weight
+    #     weighted_audience = 0.
+    #     for i, audience_key in enumerate( self['audience']['tags'] ):
+    #         n = self['audience']['n'][i]
+    #         compatibility = self['audience']['compatibility'][i]
+    #         weight = self.config['audiences']['weight'][audience_key]
+    #         weighted_audience += n * compatibility * weight
 
-        return weighted_audience
+    #     return weighted_audience
 
     ########################################################################
 
@@ -536,21 +529,22 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_impact( self, critical_value=8. ):
-        '''Estimate the impact of a deliverable, assuming
-        impact = product( n, w, r )
-        where n is the number of audience members identified,
-        w is the relevance of each audience member to the user's goals,
-        and r is the quality.
+    # DELETE
+    # def estimate_impact( self, critical_value=8. ):
+    #     '''Estimate the impact of a deliverable, assuming
+    #     impact = product( n, w, r )
+    #     where n is the number of audience members identified,
+    #     w is the relevance of each audience member to the user's goals,
+    #     and r is the quality.
 
-        Args:
-            critical_value (float):
-                The necessary value per criteria for which a criteria is
-                acceptable.
-        '''
+    #     Args:
+    #         critical_value (float):
+    #             The necessary value per criteria for which a criteria is
+    #             acceptable.
+    #     '''
 
-        r = self.estimate_quality( critical_value=critical_value )
-        impact = r * self.estimate_audience()
+    #     r = self.estimate_quality( critical_value=critical_value )
+    #     impact = r * self.estimate_audience()
 
-        return impact
+    #     return impact
         

@@ -267,123 +267,77 @@ class TestEvaluate( unittest.TestCase ):
 
 ########################################################################
 
-class TestEstimateAudience( unittest.TestCase ):
+class TestEvaluateMarket( unittest.TestCase ):
 
     def setUp( self ):
 
         self.fleet = ship.Fleet( criteria=default_criteria )
         self.fleet.construct_ship( 'The Ship' )
         self.ship = self.fleet['The Ship']
-
-        self.audience_args = dict(
-            tags = [
-                'subfield experts',
-                'field experts',
-                'astrophysicists',
-                'coworkers',
-            ],
-            n = [
-                2,
-                4,
-                3,
-                10,
-            ],
-            suitability = [
-                1,
-                0.5,
-                0.1,
-                0.1,
-            ]
-        )
-
-        self.default_side_effect = []
-        for i, key in enumerate( self.ship.config['audiences']['count'] ):
-            if i == 0:
-                self.default_side_effect += [ '', '' ]
-            else:
-                self.default_side_effect += [ np.random.randint( 1000 ), np.random.uniform( 0, 1 ) ]
+        n_ma = len( self.fleet.market_segments['Name'] )
+        self.side_effect = np.random.uniform( 0, 1, n_ma )
 
     ########################################################################
 
-    def test_evaluate_audience( self ):
+    def test_evaluate_ship( self ):
 
-        self.ship.evaluate_audience( **self.audience_args )
+        output = self.ship.evaluate_market( understandability=0.5, functionality=0.25 )
 
-        actual = self.ship['audience']
-
-        assert actual['tags'] == self.audience_args['tags']
-        npt.assert_allclose( actual['n'], self.audience_args['n'] )
-        npt.assert_allclose( actual['suitability'], self.audience_args['suitability'] )
+        npt.assert_allclose( output.product(), 0.5*0.25 )
 
     ########################################################################
 
-    # def test_evaluate_audience_input( self ):
+    def test_evaluate_ship_input( self ):
 
-    #     with mock.patch( 'builtins.input' ) as mock_input:
-    #         mock_input.side_effect = self.default_side_effect
+        with mock.patch( 'builtins.input' ) as mock_input:
+            mock_input.side_effect = self.side_effect
 
-    #         output = self.ship.evaluate_audience( True )
+            output = self.ship.evaluate_market( True )
 
-    #     expected = {
-    #         'n': 
-    #     }
+        npt.assert_allclose( output.product(), np.prod( self.side_effect ) )
 
-    # ########################################################################
+    ########################################################################
 
-    # def test_evaluate_ship_input_exit_code( self ):
+    def test_evaluate_ship_input_exit_code( self ):
 
-    #     with mock.patch( 'builtins.input' ) as mock_input:
-    #         mock_input.side_effect = [ 'q', 0.25 ]
+        with mock.patch( 'builtins.input' ) as mock_input:
+            self.side_effect[0] = 'q'
+            mock_input.side_effect = self.side_effect
 
-    #         output = self.ship.evaluate( True )
+            output = self.ship.evaluate_market( True )
 
-    #     assert output == 'q'
+        assert output == 'q'
 
-    # ########################################################################
+    ########################################################################
 
-    # def test_evaluate_ship_d_deletes( self ):
+    def test_evaluate_fleet_input( self ):
 
-    #     with mock.patch( 'builtins.input' ) as mock_input:
-    #         mock_input.side_effect = [ 'd', 0.25 ]
+        self.fleet.construct_ship( 'The Second Ship' )
+        self.fleet.construct_ship( 'The Third Ship' )
 
-    #         output = self.ship.evaluate( True )
+        side_effect = np.random.uniform( 0, 1, self.side_effect.size * 2 )
+        with mock.patch( 'builtins.input' ) as mock_input:
+            mock_input.side_effect = side_effect
 
-    #     npt.assert_allclose( output, 0.25 )
-    #     assert len( self.fleet['The Ship'].criteria() ) == 1
+            output = self.fleet.evaluate_market( 'all', True )
 
-    # ########################################################################
+        expected = np.prod( side_effect )
+        actual = np.prod( output.array().array() )
+        npt.assert_allclose( expected, actual )
 
-    # def test_evaluate_fleet_input( self ):
+    ########################################################################
 
-    #     self.fleet.construct_ship( 'The Second Ship' )
-    #     self.fleet.construct_ship( 'The Third Ship' )
+    def test_evaluate_fleet_input_break( self ):
 
-    #     with mock.patch( 'builtins.input' ) as mock_input:
-    #         mock_input.side_effect = [  0.5, 0.1, 0.2, 0.1, 0., 1., ]
+        self.fleet.construct_ship( 'The Second Ship' )
+        self.fleet.construct_ship( 'The Third Ship' )
 
-    #         output = self.fleet.evaluate( 'all', True )
+        with mock.patch( 'builtins.input' ) as mock_input:
+            mock_input.side_effect = [  0.5, 0.1, 'q', 0.1 ]
 
-    #     expected = {
-    #         'The Ship': 0.05,
-    #         'The Second Ship': 0.02,
-    #         'The Third Ship': 0.0,
-    #     }
-    #     for key, item in expected.items():
-    #         npt.assert_allclose( item, output[key] )
+            output = self.fleet.evaluate_market( 'all', True )
 
-    # ########################################################################
-
-    # def test_evaluate_fleet_input_break( self ):
-
-    #     self.fleet.construct_ship( 'The Second Ship' )
-    #     self.fleet.construct_ship( 'The Third Ship' )
-
-    #     with mock.patch( 'builtins.input' ) as mock_input:
-    #         mock_input.side_effect = [  0.5, 0.1, 'q', 0.1 ]
-
-    #         output = self.fleet.evaluate( 'all', True )
-
-    #     assert output == 'q'
+        assert output == 'q'
 
 ########################################################################
 
