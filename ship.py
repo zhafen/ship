@@ -23,7 +23,7 @@ class Fleet( object ):
             'accuracy',
             'compatibility',
             'usability',
-            'audience customization',
+            'market customization',
         ],
     ):
         '''Construct a fleet object that tracks various deliverables.
@@ -97,7 +97,7 @@ class Fleet( object ):
 
     # DELETE
     # def evaluate_market( self, ship_names='all', request_user_input=True, ):
-    #     '''Estimate the audience of all ships.
+    #     '''Estimate the market of all ships.
 
     #     Args:
     #         ship_names (str or list of strs):
@@ -168,7 +168,7 @@ class Fleet( object ):
             data = verdict.Dict.from_hdf5( filepath, *args, **kwargs )
 
         # Construct
-        fleet = fleet()
+        fleet = Fleet()
         for name, ship_data in data.items():
             fleet.ships[name] = Ship( name )
             fleet.ships[name].data = ship_data
@@ -212,10 +212,10 @@ class Fleet( object ):
         )
 
         if y_axis == 'impact':
-            audience_arr = self.ships.estimate_audience().array()
+            market_arr = self.ships.estimate_market().array()
             ax.scatter(
                 xs,
-                audience_arr,
+                market_arr,
                 color = 'k',
                 marker = 'd',
                 zorder = 2,
@@ -351,7 +351,7 @@ class Ship( object ):
         self.name = name
         self.data = verdict.Dict({
             'status': {},
-            'audience': {},
+            'market': {},
             'attrs': {
                 'name': name,
                 'description': description,
@@ -433,15 +433,15 @@ class Ship( object ):
     ########################################################################
 
     def evaluate_market( self, request_user_input=False, **compatibility_values ):
-        '''Estimate parameters related to the audience for the deliverable.
+        '''Estimate parameters related to the market for the deliverable.
         Right now this just stores the data in the right spot.
         '''
 
         if request_user_input:
-            print( 'Estimating audiences for [ {} ]...'.format( self.name ) )
+            print( 'Estimating markets for [ {} ]...'.format( self.name ) )
             used_tags = (
-                list( self['audience'].keys() ) +
-                list( self.config['audiences']['count'].keys() )
+                list( self['market'].keys() ) +
+                list( self.config['markets']['count'].keys() )
             )
             for i, key in enumerate( used_tags ):
 
@@ -449,11 +449,11 @@ class Ship( object ):
                     continue
 
                 # See if there's an existing value
-                if key in self['audience']['tags']:
-                    compatibility_i = self['audience']['compatibility'][i]
+                if key in self['market']['tags']:
+                    compatibility_i = self['market']['compatibility'][i]
                 else:
-                    n_i = self.config['audiences']['count'][key]
-                    compatibility_i = self.config['audiences']['compatibility'][key]
+                    n_i = self.config['markets']['count'][key]
+                    compatibility_i = self.config['markets']['compatibility'][key]
 
                 value = input( '    n for {} = {}'.format( key, n_i ) )
                     
@@ -481,30 +481,30 @@ class Ship( object ):
                 n.append( n_i )
                 compatibility.append( float( value ) )
 
-        self['audience'] = {
+        self['market'] = {
         }
 
-        return self['audience']
+        return self['market']
 
     ########################################################################
 
     # BUYIN
-    # def estimate_audience( self ):
+    # def estimate_market( self ):
     #     '''Estimate the impact of a deliverable, assuming
-    #     weighted audience = product( n, s, w )
-    #     where n is the number of audience members identified,
-    #     w is the relevance of each audience member to the user's goals,
-    #     and s is the compatibility of the ship to each audience.
+    #     weighted market = product( n, s, w )
+    #     where n is the number of market members identified,
+    #     w is the relevance of each market member to the user's goals,
+    #     and s is the compatibility of the ship to each market.
     #     '''
 
-    #     weighted_audience = 0.
-    #     for i, audience_key in enumerate( self['audience']['tags'] ):
-    #         n = self['audience']['n'][i]
-    #         compatibility = self['audience']['compatibility'][i]
-    #         weight = self.config['audiences']['weight'][audience_key]
-    #         weighted_audience += n * compatibility * weight
+    #     weighted_market = 0.
+    #     for i, market_key in enumerate( self['market']['tags'] ):
+    #         n = self['market']['n'][i]
+    #         compatibility = self['market']['compatibility'][i]
+    #         weight = self.config['markets']['weight'][market_key]
+    #         weighted_market += n * compatibility * weight
 
-    #     return weighted_audience
+    #     return weighted_market
 
     ########################################################################
 
@@ -533,8 +533,8 @@ class Ship( object ):
     # def estimate_impact( self, critical_value=8. ):
     #     '''Estimate the impact of a deliverable, assuming
     #     impact = product( n, w, r )
-    #     where n is the number of audience members identified,
-    #     w is the relevance of each audience member to the user's goals,
+    #     where n is the number of market members identified,
+    #     w is the relevance of each market member to the user's goals,
     #     and r is the quality.
 
     #     Args:
@@ -544,7 +544,7 @@ class Ship( object ):
     #     '''
 
     #     r = self.estimate_quality( critical_value=critical_value )
-    #     impact = r * self.estimate_audience()
+    #     impact = r * self.estimate_market()
 
     #     return impact
         

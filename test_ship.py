@@ -109,12 +109,17 @@ class TestIO( unittest.TestCase ):
             'functionality': 0.5,
             'understandability': 0.25
         }
+        expected_market = {
+            'peers': 0.2,
+            'friends': 0.9,
+        }
 
         # Setup
         self.fleet = ship.Fleet( criteria=default_criteria )
         for name in names:
             self.fleet.construct_ship( name )
             self.fleet[name]['status'] = expected
+            self.fleet[name]['market'] = expected_market
 
         # Save
         self.fleet.save( self.hdf5_save_fp )
@@ -384,22 +389,23 @@ class TestEstimateImpact( unittest.TestCase ):
 
     ########################################################################
 
-    def test_estimate_impact( self ):
+    # DELETE
+    # def test_estimate_impact( self ):
 
-        # Setup expected
-        expected_r = ( 10. * 5. ) / 64.
-        n = np.array( self.audience_args['n'] )
-        s = np.array( self.audience_args['suitability'] )
-        w = np.array( self.expected_weights )
-        expected_audience = np.sum( n * w * s )
-        expected = expected_r * expected_audience
+    #     # Setup expected
+    #     expected_r = ( 10. * 5. ) / 64.
+    #     n = np.array( self.audience_args['n'] )
+    #     s = np.array( self.audience_args['suitability'] )
+    #     w = np.array( self.expected_weights )
+    #     expected_audience = np.sum( n * w * s )
+    #     expected = expected_r * expected_audience
 
-        # Setup
-        self.ship.evaluate_audience( **self.audience_args )
+    #     # Setup
+    #     self.ship.evaluate_audience( **self.audience_args )
 
-        # Calculate
-        actual = self.ship.estimate_impact()
+    #     # Calculate
+    #     actual = self.ship.estimate_impact()
 
-        npt.assert_allclose( expected, actual )
+    #     npt.assert_allclose( expected, actual )
 
 
