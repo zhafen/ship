@@ -95,7 +95,7 @@ class Docks( object ):
 
     ########################################################################
 
-    def estimate_audience( self, ship_names='all', request_user_input=True, ):
+    def evaluate_audience( self, ship_names='all', request_user_input=True, ):
         '''Estimate the audience of all ships.
 
         Args:
@@ -103,7 +103,7 @@ class Docks( object ):
                 Names of ships to evaluate. If 'all' then all are evaluated.
 
             *args:
-                Passed to Ship.estimate_audience
+                Passed to Ship.evaluate_audience
         '''
 
         if ship_names == 'all':
@@ -111,7 +111,7 @@ class Docks( object ):
 
         result = {}
         for name in ship_names:
-            result[name] = self[name].estimate_audience( request_user_input=request_user_input )
+            result[name] = self[name].evaluate_audience( request_user_input=request_user_input )
             if result[name] == 'q':
                 print( 'Exit code received. Exiting...' )
                 return 'q'
