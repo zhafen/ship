@@ -178,38 +178,62 @@ class Docks( object ):
     # Plotting
     ########################################################################
 
-    def plot_docks( self, ax=None, critical_value=8., rotation=-45., background_linecolor='.4', ):
+    def plot_docks(
+        self,
+        y_axis = 'impact',
+        ax = None,
+        critical_value = 8.,
+        rotation = -45.,
+        background_linecolor = '.4',
+    ):
         
         if ax is None:
             fig = plt.figure()
             ax = plt.gca()
             
         # Get data
-        reception = self.ships.estimate_reception( critical_value=critical_value )
-        reception_arr = reception.array()
-        xs = np.arange( reception_arr.size )
+        if y_axis == 'reception':
+            ys = self.ships.estimate_reception( critical_value=critical_value )
+            ys_arr = ys.array()
+            xs = np.arange( ys_arr.size )
+        elif y_axis == 'impact':
+            ys = self.ships.estimate_impact( critical_value=critical_value )
+            ys_arr = ys.array()
+        xs = np.arange( ys_arr.size )
         
         # Actual plot
         ax.scatter(
             xs,
-            reception_arr,
+            ys_arr,
             color = 'k',
             marker = 'd',
             zorder = 2,
         )
+
+        if y_axis == 'impact':
+            audience_arr = self.ships.estimate_audience().array()
+            ax.scatter(
+                xs,
+                audience_arr,
+                color = 'k',
+                marker = 'd',
+                zorder = 2,
+                facecolor = 'none',
+            )
         
         # Draw relative line
-        ax.axhline(
-            1,
-            linewidth = 1,
-            color = background_linecolor,
-            zorder = -1,
-        )
+        if y_axis == 'reception':
+            ax.axhline(
+                1,
+                linewidth = 1,
+                color = background_linecolor,
+                zorder = -1,
+            )
         
         # Set xtick labels to sim names
         ax.xaxis.set_ticks( xs )
         ax.xaxis.set_ticklabels(
-            reception.keys_array(),
+            ys.keys_array(),
             rotation=rotation,
             va='top',
             ha='left',
@@ -223,7 +247,7 @@ class Docks( object ):
         # Set scale
         ax.set_yscale( 'log' )
         
-        ax.set_ylabel( r'reception' )
+        ax.set_ylabel( y_axis )
 
     ########################################################################
 
