@@ -187,12 +187,13 @@ class TestEvaluate( unittest.TestCase ):
 
         self.docks = ship.Docks( criteria=default_criteria )
         self.docks.construct_ship( 'The Ship' )
+        self.ship = self.docks['The Ship']
 
     ########################################################################
 
     def test_evaluate_ship( self ):
 
-        output = self.docks.evaluate_ship( 'The Ship', understandability=0.5, functionality=0.25 )
+        output = self.ship.evaluate( understandability=0.5, functionality=0.25 )
 
         npt.assert_allclose( output, 0.5*0.25 )
 
@@ -203,7 +204,7 @@ class TestEvaluate( unittest.TestCase ):
         with mock.patch( 'builtins.input' ) as mock_input:
             mock_input.side_effect = [ 0.5, 0.25 ]
 
-            output = self.docks.evaluate_ship( 'The Ship', True )
+            output = self.ship.evaluate( True )
 
         npt.assert_allclose( output, 0.5*0.25 )
 
@@ -214,7 +215,7 @@ class TestEvaluate( unittest.TestCase ):
         with mock.patch( 'builtins.input' ) as mock_input:
             mock_input.side_effect = [ 'q', 0.25 ]
 
-            output = self.docks.evaluate_ship( 'The Ship', True )
+            output = self.ship.evaluate( True )
 
         assert output == 'q'
 
@@ -225,7 +226,7 @@ class TestEvaluate( unittest.TestCase ):
         with mock.patch( 'builtins.input' ) as mock_input:
             mock_input.side_effect = [ 'd', 0.25 ]
 
-            output = self.docks.evaluate_ship( 'The Ship', True )
+            output = self.ship.evaluate( True )
 
         npt.assert_allclose( output, 0.25 )
         assert len( self.docks['The Ship'].criteria() ) == 1
@@ -272,7 +273,7 @@ class TestEstimateImpact( unittest.TestCase ):
         self.docks = ship.Docks( criteria=default_criteria )
         for name in test_data.keys():
             self.docks.construct_ship( name )
-            self.docks.evaluate_ship( name, **test_data[name] )
+            self.docks[name].evaluate( **test_data[name] )
 
         self.ship = self.docks['Chell']
         self.audience_args = dict(

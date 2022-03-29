@@ -70,24 +70,6 @@ class Docks( object ):
     
     ########################################################################
 
-    def evaluate_ship( self, name, *args, **criteria_values ):
-        '''Evaluate the current status of a ship.
-
-        Args:
-            name (str):
-                Name of the deliverable.
-
-            *args:
-                Passed to Ship.evaluate
-
-            **criteria_values (dict of floats):
-                Values for the criteria.
-        '''
-
-        return self[name].evaluate( *args, **criteria_values )
-
-    ########################################################################
-
     def evaluate( self, ship_names='all', request_user_input=False, *args ):
         '''Evaluate the current status of all ships.
 
@@ -104,7 +86,32 @@ class Docks( object ):
 
         result = {}
         for name in ship_names:
-            result[name] = self.evaluate_ship( name, request_user_input, *args )
+            result[name] = self[name].evaluate( request_user_input, *args )
+            if result[name] == 'q':
+                print( 'Exit code received. Exiting...' )
+                return 'q'
+
+        return result
+
+    ########################################################################
+
+    def estimate_audience( self, ship_names='all', request_user_input=True, *args ):
+        '''Estimate the audience of all ships.
+
+        Args:
+            ship_names (str or list of strs):
+                Names of ships to evaluate. If 'all' then all are evaluated.
+
+            *args:
+                Passed to Ship.estimate_audience
+        '''
+
+        if ship_names == 'all':
+            ship_names = list( self.ships.keys() )
+
+        result = {}
+        for name in ship_names:
+            result[name] = self[name].estimate_audience( name, request_user_input, *args )
             if result[name] == 'q':
                 print( 'Exit code received. Exiting...' )
                 return 'q'
@@ -458,6 +465,8 @@ class Ship( object ):
             'tags': tags,
             'suitability': np.array( suitability ),
         }
+
+        return self['audience']
 
     ########################################################################
 
