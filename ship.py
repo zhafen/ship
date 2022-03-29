@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 import os
-import yaml
+import pandas as pd
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -333,7 +333,14 @@ load.__doc__ = Fleet.load.__doc__
 
 class Ship( object ):
 
-    def __init__( self, name, criteria=[], description='', category='', ):
+    def __init__(
+        self,
+        name,
+        criteria = [],
+        description = '',
+        category = '',
+        market_segments_fp = None,
+    ):
         '''Object for a tracked deliverable.
 
         Args:
@@ -359,11 +366,22 @@ class Ship( object ):
             }
         })
 
-        # Get config file
-        config_dir = os.path.abspath( os.path.dirname( __file__ ) )
-        config_fp = os.path.join( config_dir, 'config.yaml' )
-        with open( config_fp, 'r' ) as stream:
-            self.config = yaml.safe_load( stream )
+        # DELETE
+        # # Get config file
+        # config_dir = os.path.abspath( os.path.dirname( __file__ ) )
+        # config_fp = os.path.join( config_dir, 'config.yaml' )
+        # with open( config_fp, 'r' ) as stream:
+        #     self.config = yaml.safe_load( stream )
+
+        # Settings
+        if market_segments_fp is None:
+            market_segments_fp = os.path.join(
+                os.path.dirname( __file__ ),
+                'market_segments.csv'
+            )
+        self.market_segments = pd.read_csv( market_segments_fp )
+        self.market_segments = self.market_segments.set_index( 'Name' )
+
 
         # Initial state
         for key in criteria:
@@ -438,53 +456,34 @@ class Ship( object ):
         '''
 
         if request_user_input:
-            print( 'Estimating markets for [ {} ]...'.format( self.name ) )
-            used_tags = (
-                list( self['market'].keys() ) +
-                list( self.config['markets']['count'].keys() )
-            )
-            for i, key in enumerate( used_tags ):
+            print( 'Evaluating market segments for [ {} ]...'.format( self.name ) )
+            used_keys = set( self['market'].keys() ).union( set( self.market_segments.index ) )
+            for key in used_keys:
+                if key not in compatibility_values:
 
-                if key in tags:
-                    continue
-
-                # See if there's an existing value
-                if key in self['market']['tags']:
-                    compatibility_i = self['market']['compatibility'][i]
-                else:
-                    n_i = self.config['markets']['count'][key]
-                    compatibility_i = self.config['markets']['compatibility'][key]
-
-                value = input( '    n for {} = {}'.format( key, n_i ) )
+                    if key in self['market'].keys():
+                        item = self['market'][key]
+                        value = input( '    {} = {}. Updated ='.format( key, item ) )
+                    else:
+                        value = input( '    {} = 0. Updated ='.format( key ) )
                     
-                # Use existing or quit
-                if value == '':
-                    value = n_i
-                elif value == 'q':
-                    print( '    Exit code received. Quitting.' )
-                    return 'q'
+                    # Skip
+                    if value == '':
+                        continue
+                    elif value == 'q':
+                        print( '    Exit code received. Saving and quitting.' )
+                        return 'q'
+                    elif value == 'd':
+                        print( '    Removing criteria {}'.format( key ) )
+                        del self['market'][key]
+                        continue
 
-                # Skip
-                n_i = int( value )
-                if n_i == 0:
-                    continue
-                
-                value = input( '    compatibility for {} = {}'.format( key, compatibility_i ) )
-                if value == '':
-                    value = compatibility_i
-                elif value == 'q':
-                    print( '    Exit code received. Quitting.' )
-                    return 'q'
+                    compatibility_values[key] = float( value )
 
-                # Store
-                tags.append( key )
-                n.append( n_i )
-                compatibility.append( float( value ) )
+        # Update the current ship values
+        self['market'].update( compatibility_values )
 
-        self['market'] = {
-        }
-
-        return self['market']
+        return verdict.Dict( self['market'] )
 
     ########################################################################
 

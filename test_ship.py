@@ -279,7 +279,7 @@ class TestEvaluateMarket( unittest.TestCase ):
         self.fleet = ship.Fleet( criteria=default_criteria )
         self.fleet.construct_ship( 'The Ship' )
         self.ship = self.fleet['The Ship']
-        n_ma = len( self.fleet.market_segments['Name'] )
+        n_ma = len( self.ship.market_segments.index )
         self.side_effect = np.random.uniform( 0, 1, n_ma )
 
     ########################################################################
@@ -288,7 +288,7 @@ class TestEvaluateMarket( unittest.TestCase ):
 
         output = self.ship.evaluate_market( understandability=0.5, functionality=0.25 )
 
-        npt.assert_allclose( output.product(), 0.5*0.25 )
+        npt.assert_allclose( np.prod( output.array() ), 0.5*0.25 )
 
     ########################################################################
 
@@ -299,7 +299,7 @@ class TestEvaluateMarket( unittest.TestCase ):
 
             output = self.ship.evaluate_market( True )
 
-        npt.assert_allclose( output.product(), np.prod( self.side_effect ) )
+        npt.assert_allclose( np.prod( output.array() ), np.prod( self.side_effect ) )
 
     ########################################################################
 
