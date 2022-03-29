@@ -118,32 +118,6 @@ class Fleet( object ):
 
         return result
 
-    # ########################################################################
-
-    # DELETE
-    # def evaluate_market( self, ship_names='all', request_user_input=True, ):
-    #     '''Estimate the market of all ships.
-
-    #     Args:
-    #         ship_names (str or list of strs):
-    #             Names of ships to evaluate. If 'all' then all are evaluated.
-
-    #         *args:
-    #             Passed to Ship.evaluate_market
-    #     '''
-
-    #     if ship_names == 'all':
-    #         ship_names = list( self.ships.keys() )
-
-    #     result = {}
-    #     for name in ship_names:
-    #         result[name] = self[name].evaluate_market( request_user_input=request_user_input )
-    #         if result[name] == 'q':
-    #             print( 'Exit code received. Exiting...' )
-    #             return 'q'
-
-    #     return result
-
     ########################################################################
     # I/O
     ########################################################################
@@ -391,13 +365,6 @@ class Ship( object ):
             }
         })
 
-        # DELETE
-        # # Get config file
-        # config_dir = os.path.abspath( os.path.dirname( __file__ ) )
-        # config_fp = os.path.join( config_dir, 'config.yaml' )
-        # with open( config_fp, 'r' ) as stream:
-        #     self.config = yaml.safe_load( stream )
-
         # Settings
         if market_segments_fp is None:
             market_segments_fp = os.path.join(
@@ -552,23 +519,3 @@ class Ship( object ):
         return quality
 
     ########################################################################
-
-    # DELETE
-    # def estimate_impact( self, critical_value=8. ):
-    #     '''Estimate the impact of a deliverable, assuming
-    #     impact = product( n, w, r )
-    #     where n is the number of market members identified,
-    #     w is the relevance of each market member to the user's goals,
-    #     and r is the quality.
-
-    #     Args:
-    #         critical_value (float):
-    #             The necessary value per criteria for which a criteria is
-    #             acceptable.
-    #     '''
-
-    #     r = self.estimate_quality( critical_value=critical_value )
-    #     impact = r * self.estimate_market()
-
-    #     return impact
-        

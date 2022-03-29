@@ -391,24 +391,3 @@ class TestEstimateImpact( unittest.TestCase ):
         npt.assert_allclose( expected, actual )
 
     ########################################################################
-
-    # DELETE
-    # def test_estimate_impact( self ):
-
-    #     # Setup expected
-    #     expected_r = ( 10. * 5. ) / 64.
-    #     n = np.array( self.audience_args['n'] )
-    #     s = np.array( self.audience_args['suitability'] )
-    #     w = np.array( self.expected_weights )
-    #     expected_audience = np.sum( n * w * s )
-    #     expected = expected_r * expected_audience
-
-    #     # Setup
-    #     self.ship.evaluate_audience( **self.audience_args )
-
-    #     # Calculate
-    #     actual = self.ship.estimate_impact()
-
-    #     npt.assert_allclose( expected, actual )
-
-
