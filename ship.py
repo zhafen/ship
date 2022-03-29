@@ -25,6 +25,7 @@ class Fleet( object ):
             'usability',
             'market customization',
         ],
+        markets_fp = None,
     ):
         '''Construct a fleet object that tracks various deliverables.
 
@@ -35,6 +36,15 @@ class Fleet( object ):
         self.criteria = criteria
 
         self.ships = verdict.Dict({})
+
+        # Settings
+        if markets_fp is None:
+            markets_fp = os.path.join(
+                os.path.dirname( __file__ ),
+                'markets.csv'
+            )
+        self.markets = pd.read_csv( markets_fp )
+        self.markets = self.markets.set_index( 'Market Name' )
 
     ########################################################################
     # Access methods
@@ -95,7 +105,7 @@ class Fleet( object ):
 
     ########################################################################
 
-    def evaluate_market( self, ship_names='all', request_user_input=False, **kwargs ):
+    def evaluate_market_segments( self, ship_names='all', request_user_input=False, **kwargs ):
         '''Evaluate the current status of all ships.
 
         Args:
@@ -111,7 +121,7 @@ class Fleet( object ):
 
         result = verdict.Dict({})
         for name in ship_names:
-            result[name] = self[name].evaluate_market( request_user_input, **kwargs )
+            result[name] = self[name].evaluate_market_segments( request_user_input, **kwargs )
             if result[name] == 'q':
                 print( 'Exit code received. Exiting...' )
                 return 'q'
@@ -357,7 +367,8 @@ class Ship( object ):
         self.name = name
         self.data = verdict.Dict({
             'status': {},
-            'market': {},
+            'market segments': {},
+            'markets': {},
             'attrs': {
                 'name': name,
                 'description': description,
@@ -373,7 +384,6 @@ class Ship( object ):
             )
         self.market_segments = pd.read_csv( market_segments_fp )
         self.market_segments = self.market_segments.set_index( 'Name' )
-
 
         # Initial state
         for key in criteria:
@@ -442,22 +452,55 @@ class Ship( object ):
 
     ########################################################################
 
-    def evaluate_market( self, request_user_input=False, **compatibility_values ):
+    def evaluate_market_segments( self, request_user_input=False, **compatibility_values ):
         '''Estimate parameters related to the market for the deliverable.
         Right now this just stores the data in the right spot.
         '''
 
         if request_user_input:
             print( 'Evaluating market segments for [ {} ]...'.format( self.name ) )
-            used_keys = set( self['market'].keys() ).union( set( self.market_segments.index ) )
+            used_keys = set( self['market segments'].keys() ).union(
+                set( self.market_segments.index )
+            )
             for key in used_keys:
                 if key not in compatibility_values:
 
-                    if key in self['market'].keys():
-                        item = self['market'][key]
-                        value = input( '    {} = {}. Updated ='.format( key, item ) )
+                    if key in self['market segments'].keys():
+                        item = self['market segments'][key]
                     else:
-                        value = input( '    {} = 0. Updated ='.format( key ) )
+                        item = self.market_segments.loc[key]['Default Compatibility']
+                    value = input( '    {} = {}. Updated ='.format( key, item ) )
+                    
+                    # Skip
+                    if value == '':
+                        continue
+                    elif value == 'q':
+                        print( '    Exit code received. Saving and quitting.' )
+                        return 'q'
+                    elif value == 'd':
+                        print( '    Removing criteria {}'.format( key ) )
+                        del self['market segments'][key]
+                        continue
+
+                    compatibility_values[key] = float( value )
+
+        # Update the current ship values
+        self['market segments'].update( compatibility_values )
+
+        return verdict.Dict( self['market segments'] )
+
+    ########################################################################
+
+    def send_to_market( self, request_user_input=False, **markets ):
+        '''Estimate parameters related to the market for the deliverable.
+        Right now this just stores the data in the right spot.
+        '''
+
+        if request_user_input:
+            print( 'Sending [ {} ] to markets...'.format( self.name ) )
+            for key, item in self['markets'].items():
+                if key not in markets:
+                    value = input( '    {} = {}. Updated ='.format( key, item ) )
                     
                     # Skip
                     if value == '':
@@ -470,12 +513,12 @@ class Ship( object ):
                         del self['market'][key]
                         continue
 
-                    compatibility_values[key] = float( value )
+                    markets[key] = float( value )
 
         # Update the current ship values
-        self['market'].update( compatibility_values )
+        self['markets'].update( markets )
 
-        return verdict.Dict( self['market'] )
+        return verdict.Dict( self['markets'] )
 
     ########################################################################
 

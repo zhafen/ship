@@ -119,7 +119,8 @@ class TestIO( unittest.TestCase ):
         for name in names:
             self.fleet.construct_ship( name )
             self.fleet[name]['status'] = expected
-            self.fleet[name]['market'] = expected_market
+            self.fleet[name]['market segments'] = expected_market
+            self.fleet[name]['markets'] = expected_market
 
         # Save
         self.fleet.save( self.hdf5_save_fp )
@@ -286,7 +287,7 @@ class TestEvaluateMarket( unittest.TestCase ):
 
     def test_evaluate_ship( self ):
 
-        output = self.ship.evaluate_market( understandability=0.5, functionality=0.25 )
+        output = self.ship.evaluate_market_segments( understandability=0.5, functionality=0.25 )
 
         npt.assert_allclose( np.prod( output.array() ), 0.5*0.25 )
 
@@ -297,7 +298,7 @@ class TestEvaluateMarket( unittest.TestCase ):
         with mock.patch( 'builtins.input' ) as mock_input:
             mock_input.side_effect = self.side_effect
 
-            output = self.ship.evaluate_market( True )
+            output = self.ship.evaluate_market_segments( True )
 
         npt.assert_allclose( np.prod( output.array() ), np.prod( self.side_effect ) )
 
@@ -310,7 +311,7 @@ class TestEvaluateMarket( unittest.TestCase ):
             self.side_effect[0] = 'q'
             mock_input.side_effect = self.side_effect
 
-            output = self.ship.evaluate_market( True )
+            output = self.ship.evaluate_market_segments( True )
 
         assert output == 'q'
 
@@ -325,7 +326,7 @@ class TestEvaluateMarket( unittest.TestCase ):
         with mock.patch( 'builtins.input' ) as mock_input:
             mock_input.side_effect = side_effect
 
-            output = self.fleet.evaluate_market( 'all', True )
+            output = self.fleet.evaluate_market_segments( 'all', True )
 
         expected = np.prod( side_effect )
         actual = 1.
@@ -343,19 +344,71 @@ class TestEvaluateMarket( unittest.TestCase ):
         with mock.patch( 'builtins.input' ) as mock_input:
             mock_input.side_effect = [  0.5, 0.1, 'q', 0.1 ]
 
-            output = self.fleet.evaluate_market( 'all', True )
+            output = self.fleet.evaluate_market_segments( 'all', True )
 
         assert output == 'q'
+
+########################################################################
+
+class TestSendShipToMarket( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.fleet = ship.Fleet( criteria=default_criteria )
+        self.fleet.construct_ship( 'The Ship' )
+        self.ship = self.fleet['The Ship']
+        n_m = len( self.fleet.markets.index )
+        self.side_effect = np.random.uniform( 0, 1, n_m )
+        for i, market_name in enumerate( self.fleet.markets.index ):
+            self.ship['markets'][market_name] = self.side_effect[i]
+
+    ########################################################################
+
+    def test_evaluate_ship( self ):
+
+        output = self.ship.send_to_market( arXiv=0.5, cats=0.25 )
+
+        npt.assert_allclose( output['arXiv'], 0.5 )
+        npt.assert_allclose( output['cats'], 0.25 )
+        
+    ########################################################################
+
+    def test_evaluate_ship_input( self ):
+        with mock.patch( 'builtins.input' ) as mock_input:
+            mock_input.side_effect = self.side_effect
+
+            output = self.ship.send_to_market( True )
+
+        npt.assert_allclose( np.prod( output.array() ), np.prod( self.side_effect ) )
+
+    ########################################################################
+
+    def test_evaluate_ship_input_exit_code( self ):
+
+        with mock.patch( 'builtins.input' ) as mock_input:
+            self.side_effect = list( self.side_effect )
+            self.side_effect[0] = 'q'
+            mock_input.side_effect = self.side_effect
+
+            output = self.ship.send_to_market( True )
+
+        assert output == 'q'
+
 
 ########################################################################
 
 class TestEstimateImpact( unittest.TestCase ):
 
     def setUp( self ):
+
         self.fleet = ship.Fleet( criteria=default_criteria )
         for name in test_data.keys():
             self.fleet.construct_ship( name )
             self.fleet[name].evaluate( **test_data[name] )
+            f_i = {}
+            for ms_name in self.fleet[name].market_segments.index:
+                f_i[ms_name] = np.random.uniform( 0, 1 )
+            self.fleet[name].evaluate_market_segments( **f_i )
 
         self.ship = self.fleet['Chell']
         self.audience_args = dict(
