@@ -1,10 +1,31 @@
 audiences:
-    subfield experts: 30
-    field experts: 10
-    astrophysicists: 3
-    physicists: 1
-    other academics: 0.2
-    general public: 0.05
-    theorists: 15
-    observers: 10
-    coworkers: 10
+    count:
+      subfield experts: 50
+      field experts: 200
+      astrophysicists: 200
+      physicists: 50
+      other academics: 10
+      general public: 50
+      theorists: 100
+      observers: 100
+      coworkers: 10
+    weight:
+      subfield experts: 30
+      field experts: 10
+      astrophysicists: 3
+      physicists: 1
+      other academics: 0.2
+      general public: 0.05
+      theorists: 15
+      observers: 10
+      coworkers: 10
+    suitability:
+      subfield experts: 0.9
+      field experts: 0.6
+      astrophysicists: 0.4
+      physicists: 0.2
+      other academics: 0.1
+      general public: 0.05
+      theorists: 0.8
+      observers: 0.5
+      coworkers: 0.4

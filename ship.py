@@ -95,7 +95,7 @@ class Docks( object ):
 
     ########################################################################
 
-    def estimate_audience( self, ship_names='all', request_user_input=True, *args ):
+    def estimate_audience( self, ship_names='all', request_user_input=True, ):
         '''Estimate the audience of all ships.
 
         Args:
@@ -111,7 +111,7 @@ class Docks( object ):
 
         result = {}
         for name in ship_names:
-            result[name] = self[name].estimate_audience( name, request_user_input, *args )
+            result[name] = self[name].estimate_audience( request_user_input=request_user_input )
             if result[name] == 'q':
                 print( 'Exit code received. Exiting...' )
                 return 'q'
@@ -425,12 +425,12 @@ class Ship( object ):
             for i, key in enumerate( used_tags ):
 
                 # See if there's an existing value
-                if key in self['audiences']['tags']:
-                    n_i = self['audiences']['n'][i]
-                    suitability_i = self['audiences']['suitability'][i]
+                if key in self['audience']['tags']:
+                    n_i = self['audience']['n'][i]
+                    suitability_i = self['audience']['suitability'][i]
                 else:
-                    n_i = 0
-                    suitability_i = 0.
+                    n_i = self.config['audiences']['count'][key]
+                    suitability_i = self.config['audiences']['suitability'][key]
 
                 value = input( '    n for {} = {}'.format( key, n_i ) )
                     
@@ -447,7 +447,7 @@ class Ship( object ):
                 if n_i == 0:
                     continue
                 
-                value = input( '    suitability for {} = ?'.format( key ) )
+                value = input( '    suitability for {} = {}'.format( key, suitability_i ) )
                 if value == '':
                     value = suitability_i
                     continue
@@ -509,7 +509,7 @@ class Ship( object ):
         for i, audience_key in enumerate( self['audience']['tags'] ):
             n = self['audience']['n'][i]
             suitability = self['audience']['suitability'][i]
-            weight = self.config['audiences'][audience_key]
+            weight = self.config['audiences']['weight'][audience_key]
             weighted_audience_count += n * suitability * weight
         impact = r * weighted_audience_count
 
