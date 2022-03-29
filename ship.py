@@ -193,8 +193,8 @@ class Fleet( object ):
             ax = plt.gca()
             
         # Get data
-        if y_axis == 'reception':
-            ys = self.ships.estimate_reception( critical_value=critical_value )
+        if y_axis == 'quality':
+            ys = self.ships.estimate_quality( critical_value=critical_value )
             ys_arr = ys.array()
             xs = np.arange( ys_arr.size )
         elif y_axis == 'impact':
@@ -223,7 +223,7 @@ class Fleet( object ):
             )
         
         # Draw relative line
-        if y_axis == 'reception':
+        if y_axis == 'quality':
             ax.axhline(
                 1,
                 linewidth = 1,
@@ -307,10 +307,10 @@ class Fleet( object ):
             zorder = -2,
         )
 
-        # Note reception value
-        reception = self[name].estimate_reception( critical_value=critical_value ) 
+        # Note quality value
+        quality = self[name].estimate_quality( critical_value=critical_value ) 
         ax.annotate(
-            text = r'$r =$' + '{:.2g}'.format( reception ),
+            text = r'$r =$' + '{:.2g}'.format( quality ),
             xy = ( 1, 1 ),
             xycoords = 'axes fraction',
             xytext = ( 5, -5 ),
@@ -515,8 +515,8 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_reception( self, critical_value=8. ):
-        '''Estimate the reception of the deliverable assuming reception is:
+    def estimate_quality( self, critical_value=8. ):
+        '''Estimate the quality of the deliverable assuming quality is:
         r = product( criteria_value / critical_value )
 
         Args:
@@ -525,14 +525,14 @@ class Ship( object ):
                 acceptable.
 
         Returns:
-            reception (float):
-                Estimate for the reception.
+            quality (float):
+                Estimate for the quality.
         '''
 
         scaled = self['status'] / critical_value
-        reception = np.prod( scaled.array() )
+        quality = np.prod( scaled.array() )
 
-        return reception
+        return quality
 
     ########################################################################
 
@@ -541,7 +541,7 @@ class Ship( object ):
         impact = product( n, w, r )
         where n is the number of audience members identified,
         w is the relevance of each audience member to the user's goals,
-        and r is the reception.
+        and r is the quality.
 
         Args:
             critical_value (float):
@@ -549,7 +549,7 @@ class Ship( object ):
                 acceptable.
         '''
 
-        r = self.estimate_reception( critical_value=critical_value )
+        r = self.estimate_quality( critical_value=critical_value )
         impact = r * self.estimate_audience()
 
         return impact

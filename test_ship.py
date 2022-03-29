@@ -421,10 +421,10 @@ class TestEstimateImpact( unittest.TestCase ):
 
     ########################################################################
 
-    def test_estimate_reception( self ):
+    def test_estimate_quality( self ):
 
         expected = ( 10. * 5. ) / 64.
-        actual = self.ship.estimate_reception()
+        actual = self.ship.estimate_quality()
 
         npt.assert_allclose( expected, actual )
 
