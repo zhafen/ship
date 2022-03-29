@@ -306,6 +306,7 @@ class TestEvaluateMarket( unittest.TestCase ):
     def test_evaluate_ship_input_exit_code( self ):
 
         with mock.patch( 'builtins.input' ) as mock_input:
+            self.side_effect = list( self.side_effect )
             self.side_effect[0] = 'q'
             mock_input.side_effect = self.side_effect
 
@@ -320,14 +321,16 @@ class TestEvaluateMarket( unittest.TestCase ):
         self.fleet.construct_ship( 'The Second Ship' )
         self.fleet.construct_ship( 'The Third Ship' )
 
-        side_effect = np.random.uniform( 0, 1, self.side_effect.size * 2 )
+        side_effect = np.random.uniform( 0, 1, self.side_effect.size * 3 )
         with mock.patch( 'builtins.input' ) as mock_input:
             mock_input.side_effect = side_effect
 
             output = self.fleet.evaluate_market( 'all', True )
 
         expected = np.prod( side_effect )
-        actual = np.prod( output.array().array() )
+        actual = 1.
+        for key, item in output.items():
+            actual *= np.prod( item.array() )
         npt.assert_allclose( expected, actual )
 
     ########################################################################

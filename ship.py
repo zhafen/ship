@@ -70,14 +70,14 @@ class Fleet( object ):
     
     ########################################################################
 
-    def evaluate( self, ship_names='all', request_user_input=False, *args ):
+    def evaluate( self, ship_names='all', request_user_input=False, **kwargs ):
         '''Evaluate the current status of all ships.
 
         Args:
             ship_names (str or list of strs):
                 Names of ships to evaluate. If 'all' then all are evaluated.
 
-            *args:
+            **kwargs:
                 Passed to Ship.evaluate
         '''
 
@@ -86,7 +86,32 @@ class Fleet( object ):
 
         result = {}
         for name in ship_names:
-            result[name] = self[name].evaluate( request_user_input, *args )
+            result[name] = self[name].evaluate( request_user_input, **kwargs )
+            if result[name] == 'q':
+                print( 'Exit code received. Exiting...' )
+                return 'q'
+
+        return result
+
+    ########################################################################
+
+    def evaluate_market( self, ship_names='all', request_user_input=False, **kwargs ):
+        '''Evaluate the current status of all ships.
+
+        Args:
+            ship_names (str or list of strs):
+                Names of ships to evaluate. If 'all' then all are evaluated.
+
+            **kwargs:
+                Passed to Ship.evaluate
+        '''
+
+        if ship_names == 'all':
+            ship_names = list( self.ships.keys() )
+
+        result = verdict.Dict({})
+        for name in ship_names:
+            result[name] = self[name].evaluate_market( request_user_input, **kwargs )
             if result[name] == 'q':
                 print( 'Exit code received. Exiting...' )
                 return 'q'
