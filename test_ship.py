@@ -267,6 +267,126 @@ class TestEvaluate( unittest.TestCase ):
 
 ########################################################################
 
+class TestEstimateAudience( unittest.TestCase ):
+
+    def setUp( self ):
+
+        self.docks = ship.Docks( criteria=default_criteria )
+        self.docks.construct_ship( 'The Ship' )
+        self.ship = self.docks['The Ship']
+
+        self.audience_args = dict(
+            tags = [
+                'subfield experts',
+                'field experts',
+                'astrophysicists',
+                'coworkers',
+            ],
+            n = [
+                2,
+                4,
+                3,
+                10,
+            ],
+            suitability = [
+                1,
+                0.5,
+                0.1,
+                0.1,
+            ]
+        )
+
+        self.default_side_effect = []
+        for i, key in enumerate( self.ship.config['audiences']['count'] ):
+            if i == 0:
+                self.default_side_effect += [ '', '' ]
+            else:
+                self.default_side_effect += [ np.random.randint( 1000 ), np.random.uniform( 0, 1 ) ]
+
+    ########################################################################
+
+    def test_estimate_audience( self ):
+
+        self.ship.estimate_audience( **self.audience_args )
+
+        actual = self.ship['audience']
+
+        assert actual['tags'] == self.audience_args['tags']
+        npt.assert_allclose( actual['n'], self.audience_args['n'] )
+        npt.assert_allclose( actual['suitability'], self.audience_args['suitability'] )
+
+    ########################################################################
+
+    # def test_estimate_audience_input( self ):
+
+    #     with mock.patch( 'builtins.input' ) as mock_input:
+    #         mock_input.side_effect = self.default_side_effect
+
+    #         output = self.ship.estimate_audience( True )
+
+    #     expected = {
+    #         'n': 
+    #     }
+
+    # ########################################################################
+
+    # def test_evaluate_ship_input_exit_code( self ):
+
+    #     with mock.patch( 'builtins.input' ) as mock_input:
+    #         mock_input.side_effect = [ 'q', 0.25 ]
+
+    #         output = self.ship.evaluate( True )
+
+    #     assert output == 'q'
+
+    # ########################################################################
+
+    # def test_evaluate_ship_d_deletes( self ):
+
+    #     with mock.patch( 'builtins.input' ) as mock_input:
+    #         mock_input.side_effect = [ 'd', 0.25 ]
+
+    #         output = self.ship.evaluate( True )
+
+    #     npt.assert_allclose( output, 0.25 )
+    #     assert len( self.docks['The Ship'].criteria() ) == 1
+
+    # ########################################################################
+
+    # def test_evaluate_docks_input( self ):
+
+    #     self.docks.construct_ship( 'The Second Ship' )
+    #     self.docks.construct_ship( 'The Third Ship' )
+
+    #     with mock.patch( 'builtins.input' ) as mock_input:
+    #         mock_input.side_effect = [  0.5, 0.1, 0.2, 0.1, 0., 1., ]
+
+    #         output = self.docks.evaluate( 'all', True )
+
+    #     expected = {
+    #         'The Ship': 0.05,
+    #         'The Second Ship': 0.02,
+    #         'The Third Ship': 0.0,
+    #     }
+    #     for key, item in expected.items():
+    #         npt.assert_allclose( item, output[key] )
+
+    # ########################################################################
+
+    # def test_evaluate_docks_input_break( self ):
+
+    #     self.docks.construct_ship( 'The Second Ship' )
+    #     self.docks.construct_ship( 'The Third Ship' )
+
+    #     with mock.patch( 'builtins.input' ) as mock_input:
+    #         mock_input.side_effect = [  0.5, 0.1, 'q', 0.1 ]
+
+    #         output = self.docks.evaluate( 'all', True )
+
+    #     assert output == 'q'
+
+########################################################################
+
 class TestEstimateImpact( unittest.TestCase ):
 
     def setUp( self ):
@@ -307,18 +427,6 @@ class TestEstimateImpact( unittest.TestCase ):
         actual = self.ship.estimate_reception()
 
         npt.assert_allclose( expected, actual )
-
-    ########################################################################
-
-    def test_estimate_audience( self ):
-
-        self.ship.estimate_audience( **self.audience_args )
-
-        actual = self.ship['audience']
-
-        assert actual['tags'] == self.audience_args['tags']
-        npt.assert_allclose( actual['n'], self.audience_args['n'] )
-        npt.assert_allclose( actual['suitability'], self.audience_args['suitability'] )
 
     ########################################################################
 

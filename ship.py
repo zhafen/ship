@@ -420,7 +420,7 @@ class Ship( object ):
             print( 'Estimating audiences for [ {} ]...'.format( self.name ) )
             used_tags = (
                 list( self['audience']['tags'] ) +
-                list( self.config['audiences'].keys() )
+                list( self.config['audiences']['count'].keys() )
             )
             for i, key in enumerate( used_tags ):
 
@@ -437,7 +437,6 @@ class Ship( object ):
                 # Use existing or quit
                 if value == '':
                     value = n_i
-                    continue
                 elif value == 'q':
                     print( '    Exit code received. Quitting.' )
                     return 'q'
@@ -450,7 +449,6 @@ class Ship( object ):
                 value = input( '    suitability for {} = {}'.format( key, suitability_i ) )
                 if value == '':
                     value = suitability_i
-                    continue
                 elif value == 'q':
                     print( '    Exit code received. Quitting.' )
                     return 'q'
