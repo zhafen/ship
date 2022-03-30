@@ -446,7 +446,7 @@ class TestEstimateImpact( unittest.TestCase ):
 
         actual = self.ship.estimate_market_segment_buyin( ms_name )
 
-        ms_row = self.ms[ms_name]
+        ms_row = self.ms.loc[ms_name]
         expected = (
             self.q_expected * ms_row['Weight'] * ms_row['Default Compatibility']
         )

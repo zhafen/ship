@@ -522,29 +522,9 @@ class Ship( object ):
 
     ########################################################################
 
-    # BUYIN
-    # def estimate_market( self ):
-    #     '''Estimate the impact of a deliverable, assuming
-    #     weighted market = product( n, s, w )
-    #     where n is the number of market members identified,
-    #     w is the relevance of each market member to the user's goals,
-    #     and s is the compatibility of the ship to each market.
-    #     '''
-
-    #     weighted_market = 0.
-    #     for i, market_key in enumerate( self['market']['tags'] ):
-    #         n = self['market']['n'][i]
-    #         compatibility = self['market']['compatibility'][i]
-    #         weight = self.config['markets']['weight'][market_key]
-    #         weighted_market += n * compatibility * weight
-
-    #     return weighted_market
-
-    ########################################################################
-
     def estimate_quality( self, critical_value=8. ):
         '''Estimate the quality of the deliverable assuming quality is:
-        r = product( criteria_value / critical_value )
+        q = product( criteria_value / critical_value )
 
         Args:
             critical_value (float):
@@ -562,3 +542,27 @@ class Ship( object ):
         return quality
 
     ########################################################################
+
+    def estimate_market_segment_buyin( self, ms_name, critical_value=8. ):
+        '''Estimate the buy-in expected from an individual
+        from a specified market segment,
+        B = q * ( weight of market segment ) * ( compatibility with market segment )
+
+        Args:
+            ms_name (str):
+                Market segment to consider.
+
+            critical_value (float):
+                The necessary value per criteria for which a criteria is
+                acceptable.
+            
+        Returns:
+            market_segment_buyin (float):
+                Estimate for the market segment buy-in.
+        '''
+
+        return (
+            self.estimate_quality( critical_value=critical_value ) *
+            self['market segments'][ms_name] *
+            self.market_segments.loc[ms_name]['Weight']
+        )
