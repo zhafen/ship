@@ -649,4 +649,74 @@ class Ship( object ):
 
         return B_k
 
+    ########################################################################
+
+    def estimate_buyin_change( self, variable, name=None, critical_value=8. ):
+        '''Estimate the instantaneous change in buyin, dB/dX.
+        Note that this calculation currently duplicates options, and could be sped up.
+
+        The options are...
+        'quality' (aka 'q' or 'q_k'):
+            dB_k/dq_k = B_k / q_k
+        'criteria value' (aka 'c' or 'c_m'):
+            dB_k/dc_m = alpha_m * B_k / c_m
+        'market compatibility' (aka 'F' or 'F_jk'):
+            dB_k/dF_jk = B_jk / F_jk
+        'market segment compatibility' (aka 'f' or 'f_ik'):
+            dB_k/df_ik = B_ik / f_ik * sum_j( F_jk * n_ij )
+        where...
+        i trackets market segment
+        j tracks market
+        k tracks ship
+        m tracks criteria value
+        B_k := ship buyin
+        B_jk := market buyin
+        B_ik := market segment buyin
+        q_k := ship quality
+        c_m := criteria value
+        alpha_m := weight for criteria value c_m. Not yet implemented.
+        F_jk := market compatibility
+        f_jk := market segment compatibility
+        n_ij := number of members of market segment i in market j
+
+        Args:
+            variable (str):
+                What to take the derivative w.r.t.
+
+            name (str):
+                When multiple variables of a given type, which particular variable.
+
+            critical_value (float):
+                The necessary value per criteria for which a criteria is
+                acceptable.
+            
+        Returns:
+            dB/dX (float):
+                Estimate for derivative of buy-in
+        '''
+
+        if variable in [ 'quality', 'q', 'q_k' ]:
+            B_k = self.estimate_buyin( critical_value=critical_value )
+            q_k = self.estimate_quality( critical_value=critical_value )
+            return B_k / q_k
         
+        elif variable in [ 'criteria value', 'c', 'c_m' ]:
+            B_k = self.estimate_buyin( critical_value=critical_value )
+            c_m = self['status'][name]
+            return B_k / c_m
+
+        elif variable in [ 'market compatibility', 'F', 'F_jk' ]:
+            B_jk = self.estimate_market_buyin( name, critical_value=critical_value )
+            F_jk = self['markets'][name]
+            return B_jk / F_jk
+
+        elif variable in [ 'market segment compatibility', 'f', 'f_ik' ]:
+            B_ik = self.estimate_market_segment_buyin( name, critical_value=critical_value )
+            f_ik = self['market segments'][name]
+            sum_term = 0.
+            for m_name, F_jk in self['markets'].items():
+                sum_term += F_jk * self.markets.loc[m_name].loc[name]
+            return B_ik / f_ik * sum_term
+
+        else:
+            raise KeyError( 'Unrecognized variable, {}'.format( variable ) )
