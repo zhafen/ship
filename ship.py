@@ -470,7 +470,7 @@ class Ship( object ):
                     
                     # Skip
                     if value == '':
-                        continue
+                        value = item
                     elif value == 'q':
                         print( '    Exit code received. Saving and quitting.' )
                         return 'q'

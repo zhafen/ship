@@ -304,6 +304,24 @@ class TestEvaluateMarket( unittest.TestCase ):
 
     ########################################################################
 
+    def test_evaluate_ship_input_default( self ):
+
+        with mock.patch( 'builtins.input' ) as mock_input:
+            self.side_effect = list( self.side_effect )
+            self.side_effect = [ '' for _ in self.side_effect ]
+            mock_input.side_effect = self.side_effect
+
+            output = self.ship.evaluate_market_segments( True )
+
+        def_comp = self.ship.market_segments['Default Compatibility']
+        for key in def_comp.index:
+            npt.assert_allclose(
+                def_comp.loc[key],
+                output[key]
+            )
+
+    ########################################################################
+
     def test_evaluate_ship_input_exit_code( self ):
 
         with mock.patch( 'builtins.input' ) as mock_input:
