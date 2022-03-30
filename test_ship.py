@@ -422,12 +422,14 @@ class TestEstimateImpact( unittest.TestCase ):
 
         self.ship = self.fleet['Chell']
         self.m = self.fleet.markets
+        self.m_name = self.m.index[0]
         self.ms = self.ship.market_segments
+        self.ms_name = self.ms.index[0]
         self.q_expected = ( 10. * 5. ) / 64.
         self.F_expected = F_j[m_name]
         self.N_j_expected = self.fleet.markets.index.size
         self.sum_expected = np.sum(
-            self.ms['Weight'] * self.ms['Default Count'] * self.ms['Default Compatibility']
+            self.ms['Weight'] * self.m.loc[self.m_name] * self.ms['Default Compatibility']
         )
 
     ########################################################################
@@ -442,11 +444,9 @@ class TestEstimateImpact( unittest.TestCase ):
 
     def test_estimate_market_segment_buyin( self ):
 
-        ms_name = self.ms.index[0]
+        actual = self.ship.estimate_market_segment_buyin( self.ms_name )
 
-        actual = self.ship.estimate_market_segment_buyin( ms_name )
-
-        ms_row = self.ms.loc[ms_name]
+        ms_row = self.ms.loc[self.ms_name]
         expected = (
             self.q_expected * ms_row['Weight'] * ms_row['Default Compatibility']
         )
@@ -457,9 +457,7 @@ class TestEstimateImpact( unittest.TestCase ):
 
     def test_estimate_market_buyin( self ):
 
-        m_name = self.m.index[0]
-
-        actual = self.ship.estimate_market_buyin( m_name )
+        actual = self.ship.estimate_market_buyin( self.m_name )
 
         expected = (
             self.q_expected * self.F_expected * self.sum_expected

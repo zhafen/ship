@@ -348,6 +348,7 @@ class Ship( object ):
         criteria = [],
         description = '',
         category = '',
+        markets_fp = None,
         market_segments_fp = None,
     ):
         '''Object for a tracked deliverable.
@@ -377,6 +378,14 @@ class Ship( object ):
         })
 
         # Settings
+        if markets_fp is None:
+            markets_fp = os.path.join(
+                os.path.dirname( __file__ ),
+                'markets.csv'
+            )
+        self.markets = pd.read_csv( markets_fp )
+        self.markets = self.markets.set_index( 'Market Name' )
+
         if market_segments_fp is None:
             market_segments_fp = os.path.join(
                 os.path.dirname( __file__ ),
@@ -524,7 +533,7 @@ class Ship( object ):
 
     def estimate_quality( self, critical_value=8. ):
         '''Estimate the quality of the deliverable assuming quality is:
-        q = product( criteria_value / critical_value )
+        q_k = product( criteria_value / critical_value )
 
         Args:
             critical_value (float):
@@ -546,7 +555,13 @@ class Ship( object ):
     def estimate_market_segment_buyin( self, ms_name, critical_value=8. ):
         '''Estimate the buy-in expected from an individual
         from a specified market segment,
-        B = q * ( weight of market segment ) * ( compatibility with market segment )
+        B_ik = q_k * b_i * f_ik
+        where...
+        i tracks market segment
+        k tracks ship
+        q_k := quality of the ship
+        b_i := weight of the market segment
+        f_ik := compatibility between the ship and the market segment
 
         Args:
             ms_name (str):
@@ -561,8 +576,50 @@ class Ship( object ):
                 Estimate for the market segment buy-in.
         '''
 
-        return (
-            self.estimate_quality( critical_value=critical_value ) *
-            self['market segments'][ms_name] *
-            self.market_segments.loc[ms_name]['Weight']
-        )
+        q_k = self.estimate_quality( critical_value=critical_value )
+        b_i = self.market_segments.loc[ms_name]['Weight']
+        f_ik = self['market segments'][ms_name]
+
+        return q_k * b_i * f_ik
+
+    ########################################################################
+
+    def estimate_market_buyin( self, m_name, critical_value=8. ):
+        '''Estimate the buy-in expected from an individual
+        from a specified market segment,
+        B_jk = F_jk * sum( n_ij * B_ik )
+        where...
+        i tracks market segment
+        j tracks market
+        k tracks ship
+        F_jk := compatibility between ship k and market j as a whole
+        n_ij := number of individuals from market segment i in market j
+        B_ik := market segment buyin
+            (Note that B_jk = B_ik when j is actually just a market segment)
+
+        Args:
+            m_name (str):
+                Market to consider.
+
+            critical_value (float):
+                The necessary value per criteria for which a criteria is
+                acceptable.
+            
+        Returns:
+            market_buyin (float):
+                Estimate for the market segment buy-in.
+        '''
+
+        B_jk = 0.
+        market_row = self.markets.loc[m_name]
+        for ms_name in market_row.index:
+            n_ij = market_row[ms_name]
+            B_ik = self.estimate_market_segment_buyin( ms_name )
+            B_jk += n_ij * B_ik
+
+        F_jk = self['markets'][m_name]
+        B_jk *= F_jk
+
+        return B_jk
+
+        
