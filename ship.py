@@ -720,3 +720,38 @@ class Ship( object ):
 
         else:
             raise KeyError( 'Unrecognized variable, {}'.format( variable ) )
+
+    ########################################################################
+
+    def estimate_buyin_change_landscape( self, critical_value=8. ):
+        '''Function for showing all user-controllable derivatives of buyin.
+
+        Args:
+            critical_value (float):
+                The necessary value per criteria for which a criteria is
+                acceptable.
+            
+        Returns:
+            landscape:
+                Dict containing all instantaneous variable values.
+        '''
+
+        landscape = {}
+        landscape['q'] = self.estimate_buyin_change( 'q', critical_value=critical_value )
+
+        # Variables with multiple options
+        variable_access_keys = {
+            'c': 'status',
+            'F': 'markets',
+            'f': 'market segments',
+        }
+        for variable, access_key in variable_access_keys.items():
+            landscape[variable] = {}
+            for v_name in self[access_key].keys():
+                landscape[variable][v_name] = self.estimate_buyin_change(
+                    variable,
+                    name = v_name,
+                    critical_value = critical_value
+                )
+
+        return verdict.Dict( landscape )

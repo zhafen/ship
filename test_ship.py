@@ -528,7 +528,6 @@ class TestEstimateImpact( unittest.TestCase ):
 
     def test_estimate_dBdf( self ):
 
-
         actual = self.ship.estimate_buyin_change(
             variable = 'market segment compatibility',
             name = self.ms_name,
@@ -544,3 +543,33 @@ class TestEstimateImpact( unittest.TestCase ):
 
     ########################################################################
 
+    def test_estimate_dB_landscape( self ):
+
+        actual = self.ship.estimate_buyin_change_landscape()
+
+        # dB/dq
+        expected = (
+            self.N_j_expected * self.F_expected * self.sum_expected
+        )
+        npt.assert_allclose( expected, actual['q'] )
+
+        # dB/dc
+        dBdq = (
+            self.N_j_expected * self.F_expected * self.sum_expected
+        )
+        expected = dBdq * self.q_expected / self.ship['status']['functionality']
+        npt.assert_allclose( expected, actual['c']['functionality'] )
+
+        # dB/dF
+        expected = (
+            self.q_expected * self.sum_expected
+        )
+        npt.assert_allclose( expected, actual['F'][self.m_name] )
+
+        # dB/df
+        ms_row = self.ms.loc[self.ms_name]
+        expected = (
+            self.F_expected * self.N_j_expected *
+            self.q_expected * ms_row['Weight'] * self.m[self.ms_name].loc[self.m_name]
+        )
+        npt.assert_allclose( expected, actual['f'][self.ms_name] )
