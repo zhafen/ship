@@ -194,6 +194,7 @@ class Fleet( object ):
         critical_value = 8.,
         rotation = -45.,
         background_linecolor = '.4',
+        **y_kwargs
     ):
         
         if ax is None:
@@ -203,11 +204,11 @@ class Fleet( object ):
         # Get data
         if y_axis == 'quality':
             ys = self.ships.estimate_quality( critical_value=critical_value )
-            ys_arr = ys.array()
-            xs = np.arange( ys_arr.size )
         elif y_axis == 'buy-in':
             ys = self.ships.estimate_buyin( critical_value=critical_value )
-            ys_arr = ys.array()
+        elif y_axis == 'buy-in change':
+            ys = self.ships.estimate_buyin_change( critical_value=critical_value, **y_kwargs )
+        ys_arr = ys.array()
         xs = np.arange( ys_arr.size )
         
         # Actual plot
@@ -705,9 +706,17 @@ class Ship( object ):
             return B_k / c_m
 
         elif variable in [ 'market compatibility', 'F', 'F_jk' ]:
-            B_jk = self.estimate_market_buyin( name, critical_value=critical_value )
-            F_jk = self['markets'][name]
-            return B_jk / F_jk
+            result = 0.
+            market_row = self.markets.loc[name]
+            for ms_name in market_row.index:
+                n_ij = market_row.loc[ms_name]
+                B_ik = self.estimate_market_segment_buyin(
+                    ms_name,
+                    critical_value = critical_value
+                )
+                result += n_ij * B_ik
+
+            return result
 
         elif variable in [ 'market segment compatibility', 'f', 'f_ik' ]:
             B_ik = self.estimate_market_segment_buyin( name, critical_value=critical_value )

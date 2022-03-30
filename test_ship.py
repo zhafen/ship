@@ -559,6 +559,24 @@ class TestEstimateImpact( unittest.TestCase ):
 
     ########################################################################
 
+    def test_estimate_dBdF_no_entry( self ):
+
+        del self.ship['markets'][self.m_name]
+
+        actual = self.ship.estimate_buyin_change(
+            variable = 'market compatibility',
+            name = self.m_name,
+        )
+
+        expected = (
+            self.q_expected * self.sum_expected
+        )
+
+        npt.assert_allclose( expected, actual )
+
+    ########################################################################
+    ########################################################################
+
     def test_estimate_dBdf( self ):
 
         actual = self.ship.estimate_buyin_change(
