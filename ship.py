@@ -540,7 +540,12 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_market_segment_buyin( self, ms_name, critical_value=8. ):
+    def estimate_market_segment_buyin(
+        self,
+        ms_name,
+        critical_value = 8.,
+        use_default_for_missing_values = True,
+    ):
         '''Estimate the buy-in expected from one person that is
         representative of a specified market segment,
         B_ik = q_k * b_i * f_ik
@@ -566,7 +571,13 @@ class Ship( object ):
 
         q_k = self.estimate_quality( critical_value=critical_value )
         b_i = self.market_segments.loc[ms_name]['Weight']
-        f_ik = self['market segments'][ms_name]
+        try:
+            f_ik = self['market segments'][ms_name]
+        except KeyError:
+            if use_default_for_missing_values:
+                f_ik = self.market_segments.loc[ms_name]['Default Compatibility']
+            else:
+                raise KeyError( 'Missing market segment compatibility for category {}'.format( ms_name ) )
 
         return q_k * b_i * f_ik
 

@@ -477,6 +477,21 @@ class TestEstimateImpact( unittest.TestCase ):
 
     ########################################################################
 
+    def test_estimate_market_segment_buyin_noentry( self ):
+
+        del self.ship['market segments'][self.ms_name]
+
+        actual = self.ship.estimate_market_segment_buyin( self.ms_name )
+
+        ms_row = self.ms.loc[self.ms_name]
+        expected = (
+            self.q_expected * ms_row['Weight'] * ms_row['Default Compatibility']
+        )
+
+        npt.assert_allclose( expected, actual )
+
+    ########################################################################
+
     def test_estimate_market_buyin( self ):
 
         actual = self.ship.estimate_market_buyin( self.m_name )
