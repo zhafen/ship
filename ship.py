@@ -16,14 +16,13 @@ class Fleet( object ):
         self,
         criteria = [
             'functionality',
-            'polish',
-            'allure',
-            'confidence',
-            'understandability',
             'accuracy',
+            'understandability',
+            'allure',
+            'polish',
+            'confidence',
             'compatibility',
             'usability',
-            'market customization',
         ],
         markets_fp = None,
     ):
@@ -190,7 +189,7 @@ class Fleet( object ):
 
     def plot_fleet(
         self,
-        y_axis = 'impact',
+        y_axis = 'buy-in',
         ax = None,
         critical_value = 8.,
         rotation = -45.,
@@ -206,8 +205,8 @@ class Fleet( object ):
             ys = self.ships.estimate_quality( critical_value=critical_value )
             ys_arr = ys.array()
             xs = np.arange( ys_arr.size )
-        elif y_axis == 'impact':
-            ys = self.ships.estimate_impact( critical_value=critical_value )
+        elif y_axis == 'buy-in':
+            ys = self.ships.estimate_buyin( critical_value=critical_value )
             ys_arr = ys.array()
         xs = np.arange( ys_arr.size )
         
@@ -220,17 +219,6 @@ class Fleet( object ):
             zorder = 2,
         )
 
-        if y_axis == 'impact':
-            market_arr = self.ships.estimate_market().array()
-            ax.scatter(
-                xs,
-                market_arr,
-                color = 'k',
-                marker = 'd',
-                zorder = 2,
-                facecolor = 'none',
-            )
-        
         # Draw relative line
         if y_axis == 'quality':
             ax.axhline(
