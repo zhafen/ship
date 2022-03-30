@@ -401,45 +401,85 @@ class TestEstimateImpact( unittest.TestCase ):
 
     def setUp( self ):
 
+        # Construct
         self.fleet = ship.Fleet( criteria=default_criteria )
         for name in test_data.keys():
             self.fleet.construct_ship( name )
-            self.fleet[name].evaluate( **test_data[name] )
+            ship_i = self.fleet[name]
+            ship_i.evaluate( **test_data[name] )
+            
+            # Use default values for market segment compatibility
             f_i = {}
-            for ms_name in self.fleet[name].market_segments.index:
-                f_i[ms_name] = np.random.uniform( 0, 1 )
-            self.fleet[name].evaluate_market_segments( **f_i )
+            for ms_name in ship_i.market_segments.index:
+                f_i[ms_name] = ship_i.market_segments.loc[ms_name]['Default Compatibility']
+            ship_i.evaluate_market_segments( **f_i )
+
+            # Use a constant value for market compatibility
+            F_j = {}
+            for m_name in self.fleet.markets.index:
+                F_j[m_name] = 0.6
+            self.fleet[name].send_to_market( **F_j )
 
         self.ship = self.fleet['Chell']
-        self.audience_args = dict(
-            tags = [
-                'subfield experts',
-                'field experts',
-                'astrophysicists',
-                'coworkers',
-            ],
-            n = [
-                2,
-                4,
-                3,
-                10,
-            ],
-            suitability = [
-                1,
-                0.5,
-                0.1,
-                0.1,
-            ]
+        self.m = self.fleet.markets
+        self.ms = self.ship.market_segments
+        self.q_expected = ( 10. * 5. ) / 64.
+        self.F_expected = F_j[m_name]
+        self.N_j_expected = self.fleet.markets.index.size
+        self.sum_expected = np.sum(
+            self.ms['Weight'] * self.ms['Default Count'] * self.ms['Default Compatibility']
         )
-
-        self.expected_weights = [ 30, 10, 3, 10 ]
 
     ########################################################################
 
     def test_estimate_quality( self ):
 
-        expected = ( 10. * 5. ) / 64.
         actual = self.ship.estimate_quality()
+
+        npt.assert_allclose( self.q_expected, actual )
+
+    ########################################################################
+
+    def test_estimate_market_segment_buyin( self ):
+
+        ms_name = self.ms.index[0]
+
+        actual = self.ship.estimate_market_segment_buyin( ms_name )
+
+        ms_row = self.ms[ms_name]
+        expected = (
+            self.q_expected * ms_row['Weight'] * ms_row['Default Compatibility']
+        )
+
+        npt.assert_allclose( expected, actual )
+
+    ########################################################################
+
+    def test_estimate_market_buyin( self ):
+
+        m_name = self.m.index[0]
+
+        actual = self.ship.estimate_market_buyin( m_name )
+
+        expected = (
+            self.q_expected * self.F_expected * self.sum_expected
+        )
+
+        npt.assert_allclose( expected, actual )
+
+    ########################################################################
+
+    def test_estimate_buyin( self ):
+
+        actual = self.ship.estimate_buyin()
+
+        m_name = self.m.index[0]
+
+        actual = self.ship.estimate_market_buyin( m_name )
+
+        expected = (
+            self.N_j_expected * self.q_expected * self.F_expected * self.sum_expected
+        )
 
         npt.assert_allclose( expected, actual )
 
