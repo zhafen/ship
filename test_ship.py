@@ -427,7 +427,7 @@ class TestEstimateImpact( unittest.TestCase ):
         self.ms_name = self.ms.index[0]
         self.q_expected = ( 10. * 5. ) / 64.
         self.F_expected = F_j[m_name]
-        self.N_j_expected = self.fleet.markets.index.size
+        self.N_j_expected = len( self.ship['markets'] )
         self.sum_expected = np.sum(
             self.ms['Weight'] * self.m.loc[self.m_name] * self.ms['Default Compatibility']
         )
@@ -469,11 +469,11 @@ class TestEstimateImpact( unittest.TestCase ):
 
     def test_estimate_buyin( self ):
 
+        # Make all markets the same for ease of testing
+        for m_name in self.ship.markets.index:
+            self.ship.markets.loc[m_name] = self.ship.markets.loc[self.m_name]
+
         actual = self.ship.estimate_buyin()
-
-        m_name = self.m.index[0]
-
-        actual = self.ship.estimate_market_buyin( m_name )
 
         expected = (
             self.N_j_expected * self.q_expected * self.F_expected * self.sum_expected

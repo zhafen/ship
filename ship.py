@@ -553,8 +553,8 @@ class Ship( object ):
     ########################################################################
 
     def estimate_market_segment_buyin( self, ms_name, critical_value=8. ):
-        '''Estimate the buy-in expected from an individual
-        from a specified market segment,
+        '''Estimate the buy-in expected from one person that is
+        representative of a specified market segment,
         B_ik = q_k * b_i * f_ik
         where...
         i tracks market segment
@@ -585,8 +585,7 @@ class Ship( object ):
     ########################################################################
 
     def estimate_market_buyin( self, m_name, critical_value=8. ):
-        '''Estimate the buy-in expected from an individual
-        from a specified market segment,
+        '''Estimate the buy-in expected from sending the ship to a specific market,
         B_jk = F_jk * sum( n_ij * B_ik )
         where...
         i tracks market segment
@@ -607,19 +606,47 @@ class Ship( object ):
             
         Returns:
             market_buyin (float):
-                Estimate for the market segment buy-in.
+                Estimate for the market buy-in.
         '''
 
         B_jk = 0.
         market_row = self.markets.loc[m_name]
         for ms_name in market_row.index:
             n_ij = market_row[ms_name]
-            B_ik = self.estimate_market_segment_buyin( ms_name )
+            B_ik = self.estimate_market_segment_buyin( ms_name, critical_value=critical_value )
             B_jk += n_ij * B_ik
 
         F_jk = self['markets'][m_name]
         B_jk *= F_jk
 
         return B_jk
+
+    ########################################################################
+
+    def estimate_buyin( self, critical_value=8. ):
+        '''Estimate the buy-in expected from sending the ship to all markets,
+        from a specified market segment,
+        B_k = sum( B_jk )
+        where...
+        j tracks market
+        k tracks ship
+        B_jk := market buyin
+
+        Args:
+            critical_value (float):
+                The necessary value per criteria for which a criteria is
+                acceptable.
+            
+        Returns:
+            buyin (float):
+                Estimate for the buy-in.
+        '''
+
+        B_k = 0.
+        for m_name in self['markets'].keys():
+            B_jk = self.estimate_market_buyin( m_name, critical_value=critical_value )
+            B_k += B_jk
+
+        return B_k
 
         
