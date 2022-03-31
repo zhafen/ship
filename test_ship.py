@@ -4,6 +4,9 @@ import os
 import mock
 import unittest
 
+import matplotlib
+import matplotlib.pyplot as plt
+
 import verdict
 
 import ship
@@ -688,3 +691,73 @@ class TestEstimateImpact( unittest.TestCase ):
             self.q_expected * ms_row['Weight'] * self.m[self.ms_name].loc[self.m_name]
         )
         npt.assert_allclose( expected, actual['market segments'][self.ms_name] )
+
+########################################################################
+
+class TestPlot( unittest.TestCase ):
+
+    def setUp( self ):
+
+        # Construct
+        self.fleet = ship.Fleet( criteria=default_criteria )
+        for name in test_data.keys():
+            self.fleet.construct_ship( name )
+            ship_i = self.fleet[name]
+            ship_i.evaluate( **test_data[name] )
+            
+            # Use default values for market segment compatibility
+            f_i = {}
+            for ms_name in ship_i.market_segments.index:
+                f_i[ms_name] = ship_i.market_segments.loc[ms_name]['Default Compatibility']
+            ship_i.evaluate_market_segments( **f_i )
+
+            # Use a constant value for market compatibility
+            F_j = {}
+            for m_name in self.fleet.markets.index:
+                F_j[m_name] = 0.6
+            self.fleet[name].send_to_market( **F_j )
+
+            # Make all markets the same for ease of testing
+            for m_name in ship_i.markets.index:
+                ship_i.markets.loc[m_name] = ship_i.markets.loc[ship_i.markets.index[0]]
+
+        self.ship = self.fleet['Chell']
+        self.m = self.fleet.markets
+        self.m_name = self.m.index[0]
+        self.ms = self.ship.market_segments
+        self.ms_name = self.ms.index[0]
+        self.q_expected = ( 10. * 5. ) / 64.
+        self.F_expected = F_j[m_name]
+        self.N_j_expected = len( self.ship['markets'] )
+        self.sum_expected = np.sum(
+            self.ms['Weight'] * self.m.loc[self.m_name] * self.ms['Default Compatibility']
+        )
+
+    ########################################################################
+
+    def test_plot_fleet( self ):
+        '''Just make sure it doesn't crash.'''
+
+        for y_axis in [ 'quality', 'buy-in', 'max buy-in change' ]:
+            self.fleet.plot_fleet( y_axis=y_axis, )
+            plt.close()
+
+        v_names = {
+            'criteria values': 'functionality',
+            'markets': self.m_name,
+            'market segments': self.ms_name,
+        }
+        for variable in [ 'criteria values', 'markets', 'market segments' ]:
+            self.fleet.plot_fleet( y_axis='buy-in change', variable=variable, name=v_names[variable] )
+            plt.close()
+     
+    ########################################################################
+
+    def test_plot_ship( self ):
+        '''Just make sure it doesn't crash.'''
+
+        for y_axis in [ 'buy-in', 'buy-in change', ]:
+            for variable in [ 'criteria values', 'markets', 'market segments' ]:
+                self.fleet.plot_ship( self.ship.name, y_axis=y_axis, variable=variable )
+                plt.close()
+     

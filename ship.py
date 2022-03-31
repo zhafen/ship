@@ -233,6 +233,26 @@ class Fleet( object ):
             ys = self.ships.estimate_buyin( critical_value=critical_value )
         elif y_axis == 'buy-in change':
             ys = self.ships.estimate_buyin_change( critical_value=critical_value, **y_kwargs )
+        elif y_axis == 'max buy-in change':
+            ys = verdict.Dict({})
+            for name, ship_i in self.ships.items():
+                dbl = ship_i.estimate_buyin_change_landscape( critical_value=critical_value )
+                v_maxs = verdict.Dict({})
+                for variable in [ 'criteria values', 'markets', 'market segments' ]:
+                    v_name, value = dbl[variable].keymax()
+                    v_short = {
+                        'criteria values': 'c',
+                        'markets': 'F',
+                        'market segments': 'f',
+                    }[variable]
+                    v_key = '{}.{}'.format( v_short, v_name )
+                    v_maxs[v_key] = value
+                v_key, value = v_maxs.keymax()
+                y_key = '{}.{}'.format( name, v_key )
+                ys[y_key] = value
+
+
+            
         
         plot_quant_vs_qual( ax, ys, rotation=rotation )
 
