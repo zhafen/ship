@@ -102,7 +102,7 @@ class TestIO( unittest.TestCase ):
         self.fleet = ship.Fleet( criteria=default_criteria )
         for name in names:
             self.fleet.construct_ship( name )
-            self.fleet[name]['status'] = expected
+            self.fleet[name]['criteria values'] = expected
 
         # Save
         self.fleet.save( self.save_fp )
@@ -111,7 +111,7 @@ class TestIO( unittest.TestCase ):
         actual = verdict.Dict.from_json( self.save_fp )
         for name in names:
             for key, item in expected.items():
-                npt.assert_allclose( actual[name]['status'][key], item )
+                npt.assert_allclose( actual[name]['criteria values'][key], item )
 
     ########################################################################
 
@@ -132,7 +132,7 @@ class TestIO( unittest.TestCase ):
         self.fleet = ship.Fleet( criteria=default_criteria )
         for name in names:
             self.fleet.construct_ship( name )
-            self.fleet[name]['status'] = expected
+            self.fleet[name]['criteria values'] = expected
             self.fleet[name]['market segments'] = expected_market
             self.fleet[name]['markets'] = expected_market
 
@@ -143,7 +143,7 @@ class TestIO( unittest.TestCase ):
         actual = verdict.Dict.from_hdf5( self.hdf5_save_fp )
         for name in names:
             for key, item in expected.items():
-                npt.assert_allclose( actual[name]['status'][key], item )
+                npt.assert_allclose( actual[name]['criteria values'][key], item )
 
     ########################################################################
 
@@ -160,7 +160,7 @@ class TestIO( unittest.TestCase ):
         expected_full = verdict.Dict({})
         for name in names:
             expected_full[name] = {
-                'status': expected,
+                'criteria values': expected,
             }
         expected_full.to_json( self.save_fp )
 
@@ -170,7 +170,7 @@ class TestIO( unittest.TestCase ):
         # Check
         for name in names:
             for key, item in expected.items():
-                npt.assert_allclose( fleet[name]['status'][key], item )
+                npt.assert_allclose( fleet[name]['criteria values'][key], item )
 
     ########################################################################
 
@@ -187,7 +187,7 @@ class TestIO( unittest.TestCase ):
         expected_full = verdict.Dict({})
         for name in names:
             expected_full[name] = {
-                'status': expected,
+                'criteria values': expected,
             }
         expected_full.to_hdf5( self.hdf5_save_fp )
 
@@ -197,7 +197,7 @@ class TestIO( unittest.TestCase ):
         # Check
         for name in names:
             for key, item in expected.items():
-                npt.assert_allclose( fleet[name]['status'][key], item )
+                npt.assert_allclose( fleet[name]['criteria values'][key], item )
 
 ########################################################################
 
@@ -530,6 +530,37 @@ class TestEstimateImpact( unittest.TestCase ):
 
     ########################################################################
 
+    def test_estimate_buyin_landscape( self ):
+
+        actual = self.ship.estimate_buyin_landscape()
+
+        # Net values
+        expected = self.q_expected
+        npt.assert_allclose( expected, actual['quality'] )
+        expected = (
+            self.N_j_expected * self.q_expected * self.F_expected * self.sum_expected
+        )
+        npt.assert_allclose( expected, actual['buy-in'] )
+
+        # Criteria values
+        expected = self.ship['criteria values']['functionality']
+        npt.assert_allclose( expected, actual['criteria values']['functionality'] )
+
+        # Market segment
+        ms_row = self.ms.loc[self.ms_name]
+        expected = (
+            self.q_expected * ms_row['Weight'] * ms_row['Default Compatibility']
+        )
+        npt.assert_allclose( expected, actual['market segments'][self.ms_name] )
+
+        # Market
+        expected = (
+            self.q_expected * self.F_expected * self.sum_expected
+        )
+        npt.assert_allclose( expected, actual['markets'][self.m_name] )
+
+    ########################################################################
+
     def test_estimate_dBdq( self ):
 
         actual = self.ship.estimate_buyin_change( variable='quality' )
@@ -552,7 +583,7 @@ class TestEstimateImpact( unittest.TestCase ):
         dBdq = (
             self.N_j_expected * self.F_expected * self.sum_expected
         )
-        expected = dBdq * self.q_expected / self.ship['status']['functionality']
+        expected = dBdq * self.q_expected / self.ship['criteria values']['functionality']
 
         npt.assert_allclose( expected, actual )
 
@@ -622,7 +653,7 @@ class TestEstimateImpact( unittest.TestCase ):
         dBdq = (
             self.N_j_expected * self.F_expected * self.sum_expected
         )
-        expected = dBdq * self.q_expected / self.ship['status']['functionality']
+        expected = dBdq * self.q_expected / self.ship['criteria values']['functionality']
         npt.assert_allclose( expected, actual['c']['functionality'] )
 
         # dB/dF

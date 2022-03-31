@@ -255,6 +255,7 @@ class Fleet( object ):
     def plot_ship(
         self,
         name,
+        y_axis = 'criteria value',
         ax = None,
         critical_value = 8.,
         rotation = -45.,
@@ -265,7 +266,7 @@ class Fleet( object ):
             ax = plt.gca()
             
         # Get data
-        ys = self.ships[name]['status'] / critical_value
+        ys = self.ships[name]['criteria values'] / critical_value
 
         plot_quant_vs_qual( ax, ys, rotation=rotation )
         
@@ -303,6 +304,31 @@ class Fleet( object ):
         )
         
         ax.set_ylabel( r'criteria value' )
+
+    ########################################################################
+
+    def plot_markets(
+        self,
+        ax = None,
+        rotation = -45.,
+    ):
+        
+        if ax is None:
+            fig = plt.figure()
+            ax = plt.gca()
+        
+        # Get y values
+        y_series = ( self.markets * self.market_segments['Weight'] ).sum( axis=1 )
+        ys = verdict.Dict({})
+        for name in y_series.index:
+            ys[name] = y_series.loc[name]
+            
+        plot_quant_vs_qual( ax, ys, rotation=rotation )
+        
+        # Set scale
+        ax.set_yscale( 'log' )
+        
+        ax.set_ylabel( 'max buy-in' )
 
 ########################################################################
 
@@ -370,7 +396,7 @@ class Ship( object ):
         # Store properties
         self.name = name
         self.data = verdict.Dict({
-            'status': {},
+            'criteria values': {},
             'market segments': {},
             'markets': {},
             'attrs': {
@@ -399,7 +425,7 @@ class Ship( object ):
 
         # Initial state
         for key in criteria:
-            self.data['status'][key] = 0.
+            self.data['criteria values'][key] = 0.
 
     ########################################################################
     # Access methods
@@ -420,7 +446,7 @@ class Ship( object ):
     def criteria( self ):
         '''The criteria used for evaluating the ship.'''
 
-        return list( self.data['status'].keys() )
+        return list( self.data['criteria values'].keys() )
 
     ########################################################################
 
@@ -437,7 +463,7 @@ class Ship( object ):
 
         if request_user_input:
             print( 'Evaluating [ {} ]...'.format( self.name ) )
-            for key, item in copy.deepcopy( self['status'].items() ):
+            for key, item in copy.deepcopy( self['criteria values'].items() ):
                 if key not in criteria_values:
                     value = input( '    {} = {}. Updated ='.format( key, item ) )
                     
@@ -449,17 +475,17 @@ class Ship( object ):
                         return 'q'
                     elif value == 'd':
                         print( '    Removing criteria {}'.format( key ) )
-                        del self['status'][key]
+                        del self['criteria values'][key]
                         continue
 
                     criteria_values[key] = float( value )
 
         # Update the current ship values
-        self['status'].update( criteria_values )
+        self['criteria values'].update( criteria_values )
 
         # Return a number representative of the status.
         # This number is not typically used elsewhere.
-        overall_status = np.prod( self['status'].array() )
+        overall_status = np.prod( self['criteria values'].array() )
         return overall_status
 
     ########################################################################
@@ -548,7 +574,7 @@ class Ship( object ):
                 Estimate for the quality.
         '''
 
-        scaled = self['status'] / critical_value
+        scaled = self['criteria values'] / critical_value
         quality = np.prod( scaled.array() )
 
         return quality
@@ -665,6 +691,35 @@ class Ship( object ):
 
     ########################################################################
 
+    def estimate_buyin_landscape( self, critical_value=8. ):
+        '''Function for showing all user-controllable buy-in estimates.
+
+        Args:
+            critical_value (float):
+                The necessary value per criteria for which a criteria is
+                acceptable.
+            
+        Returns:
+            landscape:
+                Dict containing all buy-in estimates.
+        '''
+
+        landscape = {}
+        landscape['quality'] = self.estimate_quality( critical_value=critical_value )
+        landscape['buy-in'] = self.estimate_buyin( critical_value=critical_value )
+
+        # Variables with multiple options
+        landscape['criteria values'] = self['criteria values']
+        for variable in [ 'markets', 'market segments' ]:
+            fn = getattr( self, 'estimate_{}_buyin'.format( variable.replace( ' ', '_' )[:-1] ) )
+            landscape[variable] = {}
+            for v_name in self[variable].keys():
+                landscape[variable][v_name] = fn( v_name, critical_value = critical_value )
+
+        return verdict.Dict( landscape )
+
+    ########################################################################
+
     def estimate_buyin_change( self, variable, name=None, critical_value=8. ):
         '''Estimate the instantaneous change in buyin, dB/dX.
         Note that this calculation currently duplicates options, and could be sped up.
@@ -716,7 +771,7 @@ class Ship( object ):
         
         elif variable in [ 'criteria value', 'c', 'c_m' ]:
             B_k = self.estimate_buyin( critical_value=critical_value )
-            c_m = self['status'][name]
+            c_m = self['criteria values'][name]
             return B_k / c_m
 
         elif variable in [ 'market compatibility', 'F', 'F_jk' ]:
@@ -763,7 +818,7 @@ class Ship( object ):
 
         # Variables with multiple options
         variable_access_keys = {
-            'c': 'status',
+            'c': 'criteria values',
             'F': 'markets',
             'f': 'market segments',
         }
