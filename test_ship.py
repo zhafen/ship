@@ -576,7 +576,7 @@ class TestEstimateImpact( unittest.TestCase ):
     def test_estimate_dBdc( self ):
 
         actual = self.ship.estimate_buyin_change(
-            variable = 'criteria value',
+            variable = 'criteria values',
             name = 'functionality',
         )
 
@@ -592,7 +592,7 @@ class TestEstimateImpact( unittest.TestCase ):
     def test_estimate_dBdF( self ):
 
         actual = self.ship.estimate_buyin_change(
-            variable = 'market compatibility',
+            variable = 'markets',
             name = self.m_name,
         )
 
@@ -609,7 +609,7 @@ class TestEstimateImpact( unittest.TestCase ):
         del self.ship['markets'][self.m_name]
 
         actual = self.ship.estimate_buyin_change(
-            variable = 'market compatibility',
+            variable = 'markets',
             name = self.m_name,
         )
 
@@ -625,7 +625,7 @@ class TestEstimateImpact( unittest.TestCase ):
     def test_estimate_dBdf( self ):
 
         actual = self.ship.estimate_buyin_change(
-            variable = 'market segment compatibility',
+            variable = 'market segments',
             name = self.ms_name,
         )
 

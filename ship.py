@@ -840,10 +840,14 @@ class Ship( object ):
         landscape['quality'] = self.estimate_buyin_change( 'q', critical_value=critical_value )
 
         # Variables with multiple options
-        variables = [ 'criteria values', 'markets', 'market segments' ]
-        for variable in variables:
+        keys = {
+            'criteria values': self['criteria values'].keys(),
+            'markets': self['markets'].keys(),
+            'market segments': self.market_segments.index,
+        }
+        for variable, variable_keys in keys.items():
             landscape[variable] = {}
-            for v_name in self[variable].keys():
+            for v_name in variable_keys:
                 landscape[variable][v_name] = self.estimate_buyin_change(
                     variable,
                     name = v_name,
