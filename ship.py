@@ -90,7 +90,7 @@ class Fleet( object ):
                 Other fleet to move ship from.
         '''
 
-        self[name] = copy.deepcopy( other_fleet )
+        self[name] = copy.deepcopy( other_fleet[name] )
         del other_fleet.ships[name]
     
     ########################################################################

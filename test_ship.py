@@ -52,6 +52,22 @@ class TestConstruct( unittest.TestCase ):
         assert fleet['The Ship'].data['attrs']['description'] == 'The default test ship.'
         assert fleet['The Ship'].data['attrs']['category'] == 'code package'
 
+    ########################################################################
+
+    def test_move_ship( self ):
+
+        fleet1 = ship.Fleet( criteria=default_criteria )
+        fleet1.construct_ship(
+            'The Ship',
+            description = 'The default test ship.',
+            category = 'code package',
+        )
+        fleet2 = ship.Fleet( criteria=default_criteria )
+
+        fleet2.move_ship( 'The Ship', fleet1 )
+
+        assert fleet2['The Ship'].name == 'The Ship'
+
 ########################################################################
 
 class TestIO( unittest.TestCase ):
