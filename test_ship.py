@@ -750,6 +750,11 @@ class TestPlot( unittest.TestCase ):
         for variable in [ 'criteria values', 'markets', 'market segments' ]:
             self.fleet.plot_fleet( y_axis='buy-in change', variable=variable, name=v_names[variable] )
             plt.close()
+    ########################################################################
+
+    def test_plot_fleet_overview( self ):
+
+        self.fleet.plot_fleet_overview()
      
     ########################################################################
 
@@ -761,3 +766,11 @@ class TestPlot( unittest.TestCase ):
                 self.fleet.plot_ship( self.ship.name, y_axis=y_axis, variable=variable )
                 plt.close()
      
+    ########################################################################
+
+    def test_plot_ship_overview( self ):
+
+        for y_axis in [ 'buy-in', 'buy-in change' ]:
+            self.fleet.plot_ship_overview( self.ship.name, y_axis=y_axis )
+     
+    ########################################################################

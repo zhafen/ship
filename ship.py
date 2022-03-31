@@ -10,6 +10,15 @@ import verdict
 
 ########################################################################
 
+modable_variables = [ 'criteria values', 'markets', 'market segments' ]
+modable_variable_shorthand = {
+    'criteria values': 'c',
+    'markets': 'F',
+    'market segments': 'f',
+}
+
+########################################################################
+
 class Fleet( object ):
 
     def __init__(
@@ -249,11 +258,7 @@ class Fleet( object ):
                 v_maxs = verdict.Dict({})
                 for variable in [ 'criteria values', 'markets', 'market segments' ]:
                     v_name, value = dbl[variable].keymax()
-                    v_short = {
-                        'criteria values': 'c',
-                        'markets': 'F',
-                        'market segments': 'f',
-                    }[variable]
+                    v_short = modable_variable_shorthand[variable]
                     v_key = '{}.{}'.format( v_short, v_name )
                     v_maxs[v_key] = value
                 v_key, value = v_maxs.keymax()
@@ -277,6 +282,22 @@ class Fleet( object ):
         ax.set_ylabel( y_axis )
 
         return ys
+
+    ########################################################################
+
+    def plot_fleet_overview( self, fig=None, y_axes=[ 'quality', 'buy-in', 'max buy-in change', ] ):    
+        
+        mosaic = [ [ _, ] for _ in y_axes ]
+        if fig is None:
+            n_rows = len( y_axes )
+            fig = plt.figure( figsize=(8,4*n_rows), facecolor='w' )
+            
+        ax_dict = fig.subplot_mosaic( mosaic )
+                
+        for y_axis in y_axes:
+            _ = self.plot_fleet( y_axis=y_axis, ax=ax_dict[y_axis] )
+            
+        fig.tight_layout()
 
     ########################################################################
 
@@ -346,6 +367,42 @@ class Fleet( object ):
         ax.set_ylabel( y_label )
 
         return ys
+
+    ########################################################################
+
+    def plot_ship_overview( self, name, fig=None, y_axis='buy-in' ):    
+        
+        mosaic = [ [ _, ] for _ in modable_variables ]
+        if fig is None:
+            n_rows = len( modable_variables )
+            fig = plt.figure( figsize=(8,4*n_rows), facecolor='w' )
+            
+        ax_dict = fig.subplot_mosaic( mosaic )
+            
+        # Plot
+        y_mins = []
+        y_maxs = []
+        for variable in modable_variables:
+            ax = ax_dict[variable]
+            
+            ys = self.plot_ship( name, y_axis=y_axis, variable=variable, ax=ax, )
+            
+            # Store limits
+            if not ( variable == 'criteria values' and y_axis == 'buy-in' ):
+                y_mins.append( ax.get_ylim()[0] )
+                y_maxs.append( ax.get_ylim()[1] )
+                
+        # Adjust limits
+        y_min = np.min( y_mins )
+        y_max = np.max( y_maxs )
+        for variable in modable_variables:
+            ax = ax_dict[variable]
+            if not ( variable == 'criteria values' and y_axis == 'buy-in' ):
+                ax.set_ylim( y_min, y_max )
+            
+        fig.tight_layout()
+        
+        return fig
 
     ########################################################################
 
