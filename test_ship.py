@@ -66,8 +66,6 @@ class TestConstruct( unittest.TestCase ):
 
         fleet2.move_ship( 'The Ship', fleet1 )
 
-        assert fleet2['The Ship'].name == 'The Ship'
-
 ########################################################################
 
 class TestIO( unittest.TestCase ):
