@@ -274,18 +274,21 @@ class Fleet( object ):
                 ys = self.ships[name]['criteria values'] / critical_value
             else:
                 bl = self.ships[name].estimate_buyin_landscape( critical_value=critical_value )
-                ys = bl[y_axis]
+                ys = bl[variable]
         elif y_axis == 'buy-in change':
             dbl = self.ships[name].estimate_buyin_change_landscape( critical_value=critical_value )
+            ys = dbl[variable]
 
         plot_quant_vs_qual( ax, ys, rotation=rotation )
         
         # Set scale
         ax.set_yscale( 'log' )
+
+        y_label = '{} {}'.format( variable, y_axis ) 
         
-        ax.tick_params( left=False, labelleft=False, which='minor' )
+        if ( variable == 'criteria values' ) and ( y_axis == 'buy-in' ):
+            ax.tick_params( left=False, labelleft=False, which='minor' )
         
-        if y_axis == 'criteria values':
             # Draw relative line
             ax.axhline(
                 1,
@@ -312,8 +315,10 @@ class Fleet( object ):
                 va = 'top',
                 ha = 'left',
             )
+
+            y_label = variable
         
-        ax.set_ylabel( '{} buy-in'.format( y_axis[:-1] ) )
+        ax.set_ylabel( y_label )
 
         return ys
 
