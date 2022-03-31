@@ -24,6 +24,7 @@ class Fleet( object ):
             'compatibility',
             'usability',
         ],
+        critical_value = 8.,
         markets_fp = None,
         market_segments_fp = None,
     ):
@@ -32,8 +33,13 @@ class Fleet( object ):
         Args:
             criteria (list of strs):
                 Default criteria for evaluating a deliverable's readiness for release.
+
+            critical_value (float):
+                The necessary value per criteria for which a criteria is
+                acceptable.
         '''
         self.criteria = criteria
+        self.critical_value = critical_value
 
         self.ships = verdict.Dict({})
 
@@ -83,8 +89,12 @@ class Fleet( object ):
 
         # Combination of particular criteria and default criteria
         criteria=list( set( self.criteria ).union( criteria ) )
+        used_kwargs = {
+            'critical_value': self.critical_value,
+        }
+        used_kwargs.update( kwargs )
 
-        self[name] = Ship( name, criteria, *args, **kwargs )
+        self[name] = Ship( name, criteria, *args, **used_kwargs )
 
     ########################################################################
 
@@ -216,7 +226,6 @@ class Fleet( object ):
         self,
         y_axis = 'buy-in',
         ax = None,
-        critical_value = 8.,
         rotation = -45.,
         background_linecolor = '.4',
         **y_kwargs
@@ -228,15 +237,15 @@ class Fleet( object ):
             
         # Get data
         if y_axis == 'quality':
-            ys = self.ships.estimate_quality( critical_value=critical_value )
+            ys = self.ships.estimate_quality()
         elif y_axis == 'buy-in':
-            ys = self.ships.estimate_buyin( critical_value=critical_value )
+            ys = self.ships.estimate_buyin()
         elif y_axis == 'buy-in change':
-            ys = self.ships.estimate_buyin_change( critical_value=critical_value, **y_kwargs )
+            ys = self.ships.estimate_buyin_change( **y_kwargs )
         elif y_axis == 'max buy-in change':
             ys = verdict.Dict({})
             for name, ship_i in self.ships.items():
-                dbl = ship_i.estimate_buyin_change_landscape( critical_value=critical_value )
+                dbl = ship_i.estimate_buyin_change_landscape()
                 v_maxs = verdict.Dict({})
                 for variable in [ 'criteria values', 'markets', 'market segments' ]:
                     v_name, value = dbl[variable].keymax()
@@ -277,7 +286,6 @@ class Fleet( object ):
         y_axis = 'buy-in',
         variable = 'criteria values',
         ax = None,
-        critical_value = 8.,
         rotation = -45.,
     ):
     
@@ -288,12 +296,12 @@ class Fleet( object ):
         # Get data
         if y_axis == 'buy-in':
             if variable == 'criteria values':
-                ys = self.ships[name]['criteria values'] / critical_value
+                ys = self.ships[name]['criteria values'] / self.critical_value
             else:
-                bl = self.ships[name].estimate_buyin_landscape( critical_value=critical_value )
+                bl = self.ships[name].estimate_buyin_landscape()
                 ys = bl[variable]
         elif y_axis == 'buy-in change':
-            dbl = self.ships[name].estimate_buyin_change_landscape( critical_value=critical_value )
+            dbl = self.ships[name].estimate_buyin_change_landscape()
             ys = dbl[variable]
 
         plot_quant_vs_qual( ax, ys, rotation=rotation )
@@ -316,13 +324,13 @@ class Fleet( object ):
 
             # Set yticks to values
             ytick_labels = np.arange( 1, 11 )
-            ytick_values = ytick_labels / critical_value
+            ytick_values = ytick_labels / self.critical_value
             ax.set_yticks( ytick_values )
             ax.set_yticklabels( ytick_labels )
             ax.set_ylim( ytick_values[0], ytick_values[-1], )
 
             # Note quality value
-            quality = self[name].estimate_quality( critical_value=critical_value ) 
+            quality = self[name].estimate_quality() 
             ax.annotate(
                 text = r'$q =$' + '{:.2g}'.format( quality ),
                 xy = ( 1, 1 ),
@@ -411,6 +419,7 @@ class Ship( object ):
         self,
         name,
         criteria = [],
+        critical_value = 8.,
         description = '',
         category = '',
         markets_fp = None,
@@ -441,6 +450,7 @@ class Ship( object ):
                 'category': category,
             }
         })
+        self.critical_value = critical_value
 
         # Settings
         if markets_fp is None:
@@ -596,21 +606,16 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_quality( self, critical_value=8. ):
+    def estimate_quality( self ):
         '''Estimate the quality of the deliverable assuming quality is:
         q_k = product( criteria_value / critical_value )
-
-        Args:
-            critical_value (float):
-                The necessary value per criteria for which a criteria is
-                acceptable.
 
         Returns:
             quality (float):
                 Estimate for the quality.
         '''
 
-        scaled = self['criteria values'] / critical_value
+        scaled = self['criteria values'] / self.critical_value
         quality = np.prod( scaled.array() )
 
         return quality
@@ -620,7 +625,6 @@ class Ship( object ):
     def estimate_market_segment_buyin(
         self,
         ms_name,
-        critical_value = 8.,
         use_default_for_missing_values = True,
     ):
         '''Estimate the buy-in expected from one person that is
@@ -636,17 +640,13 @@ class Ship( object ):
         Args:
             ms_name (str):
                 Market segment to consider.
-
-            critical_value (float):
-                The necessary value per criteria for which a criteria is
-                acceptable.
             
         Returns:
             market_segment_buyin (float):
                 Estimate for the market segment buy-in.
         '''
 
-        q_k = self.estimate_quality( critical_value=critical_value )
+        q_k = self.estimate_quality()
         b_i = self.market_segments.loc[ms_name]['Weight']
         try:
             f_ik = self['market segments'][ms_name]
@@ -660,7 +660,7 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_market_buyin( self, m_name, critical_value=8. ):
+    def estimate_market_buyin( self, m_name ):
         '''Estimate the buy-in expected from sending the ship to a specific market,
         B_jk = F_jk * sum( n_ij * B_ik )
         where...
@@ -676,10 +676,6 @@ class Ship( object ):
             m_name (str):
                 Market to consider.
 
-            critical_value (float):
-                The necessary value per criteria for which a criteria is
-                acceptable.
-            
         Returns:
             market_buyin (float):
                 Estimate for the market buy-in.
@@ -689,7 +685,7 @@ class Ship( object ):
         market_row = self.markets.loc[m_name]
         for ms_name in market_row.index:
             n_ij = market_row[ms_name]
-            B_ik = self.estimate_market_segment_buyin( ms_name, critical_value=critical_value )
+            B_ik = self.estimate_market_segment_buyin( ms_name )
             B_jk += n_ij * B_ik
 
         F_jk = self['markets'][m_name]
@@ -699,7 +695,7 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_buyin( self, critical_value=8. ):
+    def estimate_buyin( self ):
         '''Estimate the buy-in expected from sending the ship to all markets,
         from a specified market segment,
         B_k = sum( B_jk )
@@ -707,11 +703,6 @@ class Ship( object ):
         j tracks market
         k tracks ship
         B_jk := market buyin
-
-        Args:
-            critical_value (float):
-                The necessary value per criteria for which a criteria is
-                acceptable.
             
         Returns:
             buyin (float):
@@ -720,20 +711,15 @@ class Ship( object ):
 
         B_k = 0.
         for m_name in self['markets'].keys():
-            B_jk = self.estimate_market_buyin( m_name, critical_value=critical_value )
+            B_jk = self.estimate_market_buyin( m_name )
             B_k += B_jk
 
         return B_k
 
     ########################################################################
 
-    def estimate_buyin_landscape( self, critical_value=8. ):
+    def estimate_buyin_landscape( self ):
         '''Function for showing all user-controllable buy-in estimates.
-
-        Args:
-            critical_value (float):
-                The necessary value per criteria for which a criteria is
-                acceptable.
             
         Returns:
             landscape:
@@ -741,8 +727,8 @@ class Ship( object ):
         '''
 
         landscape = {}
-        landscape['quality'] = self.estimate_quality( critical_value=critical_value )
-        landscape['buy-in'] = self.estimate_buyin( critical_value=critical_value )
+        landscape['quality'] = self.estimate_quality()
+        landscape['buy-in'] = self.estimate_buyin()
 
         # Variables with multiple options
         landscape['criteria values'] = self['criteria values']
@@ -754,13 +740,13 @@ class Ship( object ):
             fn = getattr( self, 'estimate_{}_buyin'.format( variable.replace( ' ', '_' )[:-1] ) )
             landscape[variable] = {}
             for v_name in used_keys:
-                landscape[variable][v_name] = fn( v_name, critical_value = critical_value )
+                landscape[variable][v_name] = fn( v_name )
 
         return verdict.Dict( landscape )
 
     ########################################################################
 
-    def estimate_buyin_change( self, variable, name=None, critical_value=8. ):
+    def estimate_buyin_change( self, variable, name=None ):
         '''Estimate the instantaneous change in buyin, dB/dX.
         Note that this calculation currently duplicates options, and could be sped up.
 
@@ -795,22 +781,18 @@ class Ship( object ):
             name (str):
                 When multiple variables of a given type, which particular variable.
 
-            critical_value (float):
-                The necessary value per criteria for which a criteria is
-                acceptable.
-            
         Returns:
             dB/dX (float):
                 Estimate for derivative of buy-in
         '''
 
         if variable in [ 'quality', 'q', 'q_k' ]:
-            B_k = self.estimate_buyin( critical_value=critical_value )
-            q_k = self.estimate_quality( critical_value=critical_value )
+            B_k = self.estimate_buyin()
+            q_k = self.estimate_quality()
             return B_k / q_k
         
         elif variable in [ 'criteria values', 'c', 'c_m' ]:
-            B_k = self.estimate_buyin( critical_value=critical_value )
+            B_k = self.estimate_buyin()
             c_m = self['criteria values'][name]
             return B_k / c_m
 
@@ -819,16 +801,13 @@ class Ship( object ):
             market_row = self.markets.loc[name]
             for ms_name in market_row.index:
                 n_ij = market_row.loc[ms_name]
-                B_ik = self.estimate_market_segment_buyin(
-                    ms_name,
-                    critical_value = critical_value
-                )
+                B_ik = self.estimate_market_segment_buyin( ms_name )
                 result += n_ij * B_ik
 
             return result
 
         elif variable in [ 'market segments', 'f', 'f_ik' ]:
-            q_k = self.estimate_quality( critical_value=critical_value )
+            q_k = self.estimate_quality()
             b_i = self.market_segments['Weight'].loc[name]
             sum_term = 0.
             for m_name, F_jk in self['markets'].items():
@@ -840,13 +819,8 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_buyin_change_landscape( self, critical_value=8. ):
+    def estimate_buyin_change_landscape( self ):
         '''Function for showing all user-controllable derivatives of buyin.
-
-        Args:
-            critical_value (float):
-                The necessary value per criteria for which a criteria is
-                acceptable.
             
         Returns:
             landscape:
@@ -854,7 +828,7 @@ class Ship( object ):
         '''
 
         landscape = {}
-        landscape['quality'] = self.estimate_buyin_change( 'q', critical_value=critical_value )
+        landscape['quality'] = self.estimate_buyin_change( 'q' )
 
         # Variables with multiple options
         keys = {
@@ -868,7 +842,6 @@ class Ship( object ):
                 landscape[variable][v_name] = self.estimate_buyin_change(
                     variable,
                     name = v_name,
-                    critical_value = critical_value
                 )
 
         return verdict.Dict( landscape )
