@@ -257,7 +257,8 @@ class Fleet( object ):
     def plot_ship(
         self,
         name,
-        y_axis = 'criteria values',
+        y_axis = 'buy-in',
+        variable = 'criteria values',
         ax = None,
         critical_value = 8.,
         rotation = -45.,
@@ -268,11 +269,14 @@ class Fleet( object ):
             ax = plt.gca()
             
         # Get data
-        if y_axis == 'criteria values':
-            ys = self.ships[name]['criteria values'] / critical_value
-        else:
-            bl = self.ships[name].estimate_buyin_landscape( critical_value=critical_value )
-            ys = bl[y_axis]
+        if y_axis == 'buy-in':
+            if variable == 'criteria values':
+                ys = self.ships[name]['criteria values'] / critical_value
+            else:
+                bl = self.ships[name].estimate_buyin_landscape( critical_value=critical_value )
+                ys = bl[y_axis]
+        elif y_axis == 'buy-in change':
+            dbl = self.ships[name].estimate_buyin_change_landscape( critical_value=critical_value )
 
         plot_quant_vs_qual( ax, ys, rotation=rotation )
         
@@ -309,7 +313,7 @@ class Fleet( object ):
                 ha = 'left',
             )
         
-        ax.set_ylabel( y_axis )
+        ax.set_ylabel( '{} buy-in'.format( y_axis[:-1] ) )
 
         return ys
 
@@ -783,12 +787,12 @@ class Ship( object ):
             q_k = self.estimate_quality( critical_value=critical_value )
             return B_k / q_k
         
-        elif variable in [ 'criteria value', 'c', 'c_m' ]:
+        elif variable in [ 'criteria values', 'c', 'c_m' ]:
             B_k = self.estimate_buyin( critical_value=critical_value )
             c_m = self['criteria values'][name]
             return B_k / c_m
 
-        elif variable in [ 'market compatibility', 'F', 'F_jk' ]:
+        elif variable in [ 'markets', 'F', 'F_jk' ]:
             result = 0.
             market_row = self.markets.loc[name]
             for ms_name in market_row.index:
@@ -801,7 +805,7 @@ class Ship( object ):
 
             return result
 
-        elif variable in [ 'market segment compatibility', 'f', 'f_ik' ]:
+        elif variable in [ 'market segments', 'f', 'f_ik' ]:
             B_ik = self.estimate_market_segment_buyin( name, critical_value=critical_value )
             f_ik = self['market segments'][name]
             sum_term = 0.
@@ -828,17 +832,13 @@ class Ship( object ):
         '''
 
         landscape = {}
-        landscape['q'] = self.estimate_buyin_change( 'q', critical_value=critical_value )
+        landscape['quality'] = self.estimate_buyin_change( 'q', critical_value=critical_value )
 
         # Variables with multiple options
-        variable_access_keys = {
-            'c': 'criteria values',
-            'F': 'markets',
-            'f': 'market segments',
-        }
-        for variable, access_key in variable_access_keys.items():
+        variables = [ 'criteria values', 'markets', 'market segments' ]
+        for variable in variables:
             landscape[variable] = {}
-            for v_name in self[access_key].keys():
+            for v_name in self[variable].keys():
                 landscape[variable][v_name] = self.estimate_buyin_change(
                     variable,
                     name = v_name,

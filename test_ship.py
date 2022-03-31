@@ -647,20 +647,20 @@ class TestEstimateImpact( unittest.TestCase ):
         expected = (
             self.N_j_expected * self.F_expected * self.sum_expected
         )
-        npt.assert_allclose( expected, actual['q'] )
+        npt.assert_allclose( expected, actual['quality'] )
 
         # dB/dc
         dBdq = (
             self.N_j_expected * self.F_expected * self.sum_expected
         )
         expected = dBdq * self.q_expected / self.ship['criteria values']['functionality']
-        npt.assert_allclose( expected, actual['c']['functionality'] )
+        npt.assert_allclose( expected, actual['criteria values']['functionality'] )
 
         # dB/dF
         expected = (
             self.q_expected * self.sum_expected
         )
-        npt.assert_allclose( expected, actual['F'][self.m_name] )
+        npt.assert_allclose( expected, actual['markets'][self.m_name] )
 
         # dB/df
         ms_row = self.ms.loc[self.ms_name]
@@ -668,4 +668,4 @@ class TestEstimateImpact( unittest.TestCase ):
             self.F_expected * self.N_j_expected *
             self.q_expected * ms_row['Weight'] * self.m[self.ms_name].loc[self.m_name]
         )
-        npt.assert_allclose( expected, actual['f'][self.ms_name] )
+        npt.assert_allclose( expected, actual['market segments'][self.ms_name] )
