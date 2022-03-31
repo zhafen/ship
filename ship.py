@@ -248,11 +248,8 @@ class Fleet( object ):
                     v_key = '{}.{}'.format( v_short, v_name )
                     v_maxs[v_key] = value
                 v_key, value = v_maxs.keymax()
-                y_key = '{}.{}'.format( name, v_key )
+                y_key = '{}\n{}'.format( name, v_key )
                 ys[y_key] = value
-
-
-            
         
         plot_quant_vs_qual( ax, ys, rotation=rotation )
 
