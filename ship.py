@@ -76,6 +76,22 @@ class Fleet( object ):
         criteria=list( set( self.criteria ).union( criteria ) )
 
         self[name] = Ship( name, criteria, *args, **kwargs )
+
+    ########################################################################
+
+    def move_ship( self, name, other_fleet ):
+        '''Move a ship from another fleet to this fleet.
+
+        Args:
+            name (str):
+                Name of the deliverable.
+
+            other_fleet (ship.Fleet):
+                Other fleet to move ship from.
+        '''
+
+        self[name] = copy.deepcopy( other_fleet )
+        del other_fleet.ships[name]
     
     ########################################################################
 
