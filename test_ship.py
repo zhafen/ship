@@ -491,7 +491,7 @@ class TestEstimateImpact( unittest.TestCase ):
 
     ########################################################################
 
-    def test_estimate_market_segment_buyin_noentry( self ):
+    def test_estimate_market_segment_buyin_no_entry( self ):
 
         del self.ship['market segments'][self.ms_name]
 
@@ -620,7 +620,6 @@ class TestEstimateImpact( unittest.TestCase ):
         npt.assert_allclose( expected, actual )
 
     ########################################################################
-    ########################################################################
 
     def test_estimate_dBdf( self ):
 
@@ -636,6 +635,26 @@ class TestEstimateImpact( unittest.TestCase ):
         )
 
         npt.assert_allclose( expected, actual )
+
+    ########################################################################
+
+    def test_estimate_dBdf_no_entry( self ):
+
+        del self.ship.data['market segments'][self.ms_name]
+
+        actual = self.ship.estimate_buyin_change(
+            variable = 'market segments',
+            name = self.ms_name,
+        )
+
+        ms_row = self.ms.loc[self.ms_name]
+        expected = (
+            self.F_expected * self.N_j_expected *
+            self.q_expected * ms_row['Weight'] * self.m[self.ms_name].loc[self.m_name]
+        )
+
+        npt.assert_allclose( expected, actual )
+
 
     ########################################################################
 

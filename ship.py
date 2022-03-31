@@ -811,12 +811,12 @@ class Ship( object ):
             return result
 
         elif variable in [ 'market segments', 'f', 'f_ik' ]:
-            B_ik = self.estimate_market_segment_buyin( name, critical_value=critical_value )
-            f_ik = self['market segments'][name]
+            q_k = self.estimate_quality( critical_value=critical_value )
+            b_i = self.market_segments['Weight'].loc[name]
             sum_term = 0.
             for m_name, F_jk in self['markets'].items():
                 sum_term += F_jk * self.markets.loc[m_name].loc[name]
-            return B_ik / f_ik * sum_term
+            return q_k * b_i * sum_term
 
         else:
             raise KeyError( 'Unrecognized variable, {}'.format( variable ) )
