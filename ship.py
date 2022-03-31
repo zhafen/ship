@@ -25,6 +25,7 @@ class Fleet( object ):
             'usability',
         ],
         markets_fp = None,
+        market_segments_fp = None,
     ):
         '''Construct a fleet object that tracks various deliverables.
 
@@ -44,6 +45,14 @@ class Fleet( object ):
             )
         self.markets = pd.read_csv( markets_fp )
         self.markets = self.markets.set_index( 'Market Name' )
+
+        if market_segments_fp is None:
+            market_segments_fp = os.path.join(
+                os.path.dirname( __file__ ),
+                'market_segments.csv'
+            )
+        self.market_segments = pd.read_csv( market_segments_fp )
+        self.market_segments = self.market_segments.set_index( 'Name' )
 
     ########################################################################
     # Access methods
@@ -224,17 +233,8 @@ class Fleet( object ):
             ys = self.ships.estimate_buyin( critical_value=critical_value )
         elif y_axis == 'buy-in change':
             ys = self.ships.estimate_buyin_change( critical_value=critical_value, **y_kwargs )
-        ys_arr = ys.array()
-        xs = np.arange( ys_arr.size )
         
-        # Actual plot
-        ax.scatter(
-            xs,
-            ys_arr,
-            color = 'k',
-            marker = 'd',
-            zorder = 2,
-        )
+        plot_quant_vs_qual( ax, ys, rotation=rotation )
 
         # Draw relative line
         if y_axis == 'quality':
@@ -244,20 +244,6 @@ class Fleet( object ):
                 color = background_linecolor,
                 zorder = -1,
             )
-        
-        # Set xtick labels to sim names
-        ax.xaxis.set_ticks( xs )
-        ax.xaxis.set_ticklabels(
-            ys.keys_array(),
-            rotation=rotation,
-            va='top',
-            ha='left',
-        )
-        ax.grid(
-            axis = 'x',
-            which = 'major',
-            zorder = -1,
-        )
         
         # Set scale
         ax.set_yscale( 'log' )
@@ -269,9 +255,9 @@ class Fleet( object ):
     def plot_ship(
         self,
         name,
-        ax=None,
-        critical_value=8.,
-        rotation=-45.,
+        ax = None,
+        critical_value = 8.,
+        rotation = -45.,
     ):
     
         if ax is None:
@@ -279,17 +265,9 @@ class Fleet( object ):
             ax = plt.gca()
             
         # Get data
-        criteria = self.ships[name]['status'] / critical_value
-        criteria_values = criteria.array()
-        xs = np.arange( criteria_values.size )
-        
-        # Actual plot
-        ax.scatter(
-            xs,
-            criteria_values,
-            color = 'k',
-            zorder = 10,
-        )
+        ys = self.ships[name]['status'] / critical_value
+
+        plot_quant_vs_qual( ax, ys, rotation=rotation )
         
         # Draw relative line
         ax.axhline(
@@ -304,27 +282,17 @@ class Fleet( object ):
         
         ax.tick_params( left=False, labelleft=False, which='minor' )
         
-        # Set xtick labels to sim names
-        ax.xaxis.set_ticks( xs )
-        ax.xaxis.set_ticklabels( criteria.keys_array(), rotation=rotation, va='top', ha='left', )
-        
         # Set yticks to values
         ytick_labels = np.arange( 1, 11 )
         ytick_values = ytick_labels / critical_value
         ax.set_yticks( ytick_values )
         ax.set_yticklabels( ytick_labels )
         ax.set_ylim( ytick_values[0], ytick_values[-1], )
-        
-        # Setup gridlines
-        ax.grid(
-            which = 'major',
-            zorder = -2,
-        )
 
         # Note quality value
         quality = self[name].estimate_quality( critical_value=critical_value ) 
         ax.annotate(
-            text = r'$r =$' + '{:.2g}'.format( quality ),
+            text = r'$q =$' + '{:.2g}'.format( quality ),
             xy = ( 1, 1 ),
             xycoords = 'axes fraction',
             xytext = ( 5, -5 ),
@@ -336,6 +304,36 @@ class Fleet( object ):
         
         ax.set_ylabel( r'criteria value' )
 
+########################################################################
+
+def plot_quant_vs_qual( ax, ys, rotation=-45. ):
+
+    ys_arr = ys.array()
+    xs = np.arange( ys_arr.size )
+    
+    # Actual plot
+    ax.scatter(
+        xs,
+        ys_arr,
+        color = 'k',
+        marker = 'd',
+        zorder = 2,
+    )
+
+    # Set xtick labels to sim names
+    ax.xaxis.set_ticks( xs )
+    ax.xaxis.set_ticklabels(
+        ys.keys_array(),
+        rotation=rotation,
+        va='top',
+        ha='left',
+    )
+    ax.grid(
+        axis = 'x',
+        which = 'major',
+        zorder = -1,
+    )
+        
 ########################################################################
 
 # Convenience wrapper for fleet constructor
