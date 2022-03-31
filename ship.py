@@ -223,7 +223,7 @@ class Fleet( object ):
     ):
         
         if ax is None:
-            fig = plt.figure()
+            fig = plt.figure( figsize=(8,4), facecolor='w' )
             ax = plt.gca()
             
         # Get data
@@ -250,60 +250,68 @@ class Fleet( object ):
         
         ax.set_ylabel( y_axis )
 
+        return ys
+
     ########################################################################
 
     def plot_ship(
         self,
         name,
-        y_axis = 'criteria value',
+        y_axis = 'criteria values',
         ax = None,
         critical_value = 8.,
         rotation = -45.,
     ):
     
         if ax is None:
-            fig = plt.figure()
+            fig = plt.figure( figsize=(8,4), facecolor='w' )
             ax = plt.gca()
             
         # Get data
-        ys = self.ships[name]['criteria values'] / critical_value
+        if y_axis == 'criteria values':
+            ys = self.ships[name]['criteria values'] / critical_value
+        else:
+            bl = self.ships[name].estimate_buyin_landscape( critical_value=critical_value )
+            ys = bl[y_axis]
 
         plot_quant_vs_qual( ax, ys, rotation=rotation )
-        
-        # Draw relative line
-        ax.axhline(
-            1,
-            linewidth = 1,
-            color = 'k',
-            zorder = 9,
-        )
         
         # Set scale
         ax.set_yscale( 'log' )
         
         ax.tick_params( left=False, labelleft=False, which='minor' )
         
-        # Set yticks to values
-        ytick_labels = np.arange( 1, 11 )
-        ytick_values = ytick_labels / critical_value
-        ax.set_yticks( ytick_values )
-        ax.set_yticklabels( ytick_labels )
-        ax.set_ylim( ytick_values[0], ytick_values[-1], )
+        if y_axis == 'criteria values':
+            # Draw relative line
+            ax.axhline(
+                1,
+                linewidth = 1,
+                color = 'k',
+                zorder = 9,
+            )
 
-        # Note quality value
-        quality = self[name].estimate_quality( critical_value=critical_value ) 
-        ax.annotate(
-            text = r'$q =$' + '{:.2g}'.format( quality ),
-            xy = ( 1, 1 ),
-            xycoords = 'axes fraction',
-            xytext = ( 5, -5 ),
-            textcoords = 'offset points',
-            va = 'top',
-            ha = 'left',
-            fontsize = 16,
-        )
+            # Set yticks to values
+            ytick_labels = np.arange( 1, 11 )
+            ytick_values = ytick_labels / critical_value
+            ax.set_yticks( ytick_values )
+            ax.set_yticklabels( ytick_labels )
+            ax.set_ylim( ytick_values[0], ytick_values[-1], )
+
+            # Note quality value
+            quality = self[name].estimate_quality( critical_value=critical_value ) 
+            ax.annotate(
+                text = r'$q =$' + '{:.2g}'.format( quality ),
+                xy = ( 1, 1 ),
+                xycoords = 'axes fraction',
+                xytext = ( 5, -5 ),
+                textcoords = 'offset points',
+                va = 'top',
+                ha = 'left',
+            )
         
-        ax.set_ylabel( r'criteria value' )
+        ax.set_ylabel( y_axis )
+
+        return ys
 
     ########################################################################
 
@@ -314,7 +322,7 @@ class Fleet( object ):
     ):
         
         if ax is None:
-            fig = plt.figure()
+            fig = plt.figure( figsize=(8,4), facecolor='w' )
             ax = plt.gca()
         
         # Get y values
@@ -329,6 +337,8 @@ class Fleet( object ):
         ax.set_yscale( 'log' )
         
         ax.set_ylabel( 'max buy-in' )
+
+        return ys
 
 ########################################################################
 
@@ -710,10 +720,14 @@ class Ship( object ):
 
         # Variables with multiple options
         landscape['criteria values'] = self['criteria values']
-        for variable in [ 'markets', 'market segments' ]:
+        keys = {
+            'markets': self['markets'].keys(),
+            'market segments': self.market_segments.index,
+        }
+        for variable, used_keys in keys.items():
             fn = getattr( self, 'estimate_{}_buyin'.format( variable.replace( ' ', '_' )[:-1] ) )
             landscape[variable] = {}
-            for v_name in self[variable].keys():
+            for v_name in used_keys:
                 landscape[variable][v_name] = fn( v_name, critical_value = critical_value )
 
         return verdict.Dict( landscape )
