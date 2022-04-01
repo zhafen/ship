@@ -320,14 +320,30 @@ class Fleet( object ):
         if y_axis == 'values':
             if variable == 'criteria values':
                 ys = self.ships[name]['criteria values'] / self.critical_value
-            else:
+            elif variable == 'market segments':
+                ys = verdict.Dict({})
+                for ms_name in self.market_segments.index:
+                    if ms_name in self.ships[name][variable]:
+                        ys[ms_name] = self.ships[name][variable][ms_name]
+                    else:
+                        ys[ms_name] = self.market_segments['Default Compatibility'].loc[ms_name]
+            elif variable == 'markets':
                 ys = self.ships[name][variable]
+            else:
+                raise KeyError( 'Unrecognized variable, {}'.format( variable ) )
         elif y_axis == 'buy-in':
             if variable == 'criteria values':
                 ys = self.ships[name]['criteria values'] / self.critical_value
             else:
                 bl = self.ships[name].estimate_buyin_landscape()
                 ys = bl[variable]
+                all_v_names = {
+                    'markets': self.markets.index,
+                    'market segments': self.market_segments.index,
+                }[variable]
+                for v_name in all_v_names:
+                    if v_name not in ys:
+                        ys[v_name] = 0.
         elif y_axis in [ 'buy-in change', 'dB/dt' ]:
             dt = y_axis == 'dB/dt'
             dbl = self.ships[name].estimate_buyin_change_landscape( dt=dt )
@@ -341,6 +357,14 @@ class Fleet( object ):
         ax.set_yscale( 'log' )
 
         y_label = '{} {}'.format( variable, y_axis ) 
+
+        # Plot maximum buy-ins
+        if y_axis == 'buy-in' and variable != 'criteria values':
+
+            dbl = self.ships[name].estimate_buyin_change_landscape( dt=False )
+            max_ys = dbl[variable]
+
+            plot_quant_vs_qual( ax, max_ys, rotation=rotation, color='none', edgecolor='k' )
         
         if y_axis in [ 'buy-in', 'values' ]:
             # Draw relative line
@@ -418,6 +442,17 @@ class Fleet( object ):
             ax = ax_dict[variable]
             if not ( variable == 'criteria values' and y_axis in [ 'buy-in', 'values' ] ):
                 ax.set_ylim( y_min, y_max )
+
+        # Add annotation of name
+        ax_dict[mosaic[0][0]].annotate(
+            text = name,
+            xy = ( 0, 1 ),
+            xycoords = 'axes fraction',
+            xytext = ( 5, 5 ),
+            textcoords = 'offset points',
+            va = 'bottom',
+            ha = 'left',
+        )
             
         fig.tight_layout()
         
@@ -452,18 +487,22 @@ class Fleet( object ):
 
 ########################################################################
 
-def plot_quant_vs_qual( ax, ys, rotation=-45. ):
+def plot_quant_vs_qual( ax, ys, rotation=-45., **scatter_kwargs ):
 
     ys_arr = ys.array()
     xs = np.arange( ys_arr.size )
     
+    used_scatter_kwargs = dict(
+        color = 'k',
+        marker = 'd',
+        zorder = 2,
+    )
+    used_scatter_kwargs.update( scatter_kwargs )
     # Actual plot
     ax.scatter(
         xs,
         ys_arr,
-        color = 'k',
-        marker = 'd',
-        zorder = 2,
+        **used_scatter_kwargs
     )
 
     # Set xtick labels to sim names
