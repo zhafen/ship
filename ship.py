@@ -554,6 +554,24 @@ class Ship( object ):
 
     ########################################################################
 
+    def hold_variable_constant( self, variable, name ):
+        '''Set a variable as constant, i.e. dB/dvariable = 0.
+
+        Args:
+            variable (str):
+                Type of variable, e.g. 'criteria values'.
+
+            name (str):
+                Specific variable, e.g. 'functionality'
+        '''
+
+        key = 'variables held constant'
+        if key not in self.data:
+            self.data[key] = []
+        self.data[key].append( (variable, name) )
+
+    ########################################################################
+
     def evaluate( self, request_user_input=False, **criteria_values ):
         '''Evaluate the current status of the ship.
 
@@ -849,7 +867,21 @@ class Ship( object ):
                 Estimate for derivative of buy-in
         '''
 
+        # Map to shorthands
         if variable in [ 'quality', 'q', 'q_k' ]:
+            variable = 'quality'
+        elif variable in [ 'criteria values', 'c', 'c_m' ]:
+            variable = 'criteria values'
+        elif variable in [ 'markets', 'F', 'F_jk' ]:
+            variable = 'markets'
+        elif variable in [ 'market segments', 'f', 'f_ik' ]:
+            variable = 'market segments'
+
+        if 'variables held constant' in self.data:
+            if ( variable, name ) in self.data['variables held constant']:
+                return 0.
+
+        if variable == 'quality':
             B_k = self.estimate_buyin()
             q_k = self.estimate_quality()
             dB = B_k / q_k
@@ -857,7 +889,7 @@ class Ship( object ):
                 dB *= 1. - q_k
             return dB
         
-        elif variable in [ 'criteria values', 'c', 'c_m' ]:
+        elif variable == 'criteria values':
             B_k = self.estimate_buyin()
             c_m = self['criteria values'][name] / 10.
             dB = B_k / c_m
@@ -865,7 +897,7 @@ class Ship( object ):
                 dB *= 1. - c_m
             return dB
 
-        elif variable in [ 'markets', 'F', 'F_jk' ]:
+        elif variable == 'markets':
             dB = 0.
             market_row = self.markets.loc[name]
             for ms_name in market_row.index:
@@ -878,7 +910,7 @@ class Ship( object ):
 
             return dB
 
-        elif variable in [ 'market segments', 'f', 'f_ik' ]:
+        elif variable == 'market segments':
             q_k = self.estimate_quality()
             b_i = self.market_segments['Weight'].loc[name]
             sum_term = 0.
