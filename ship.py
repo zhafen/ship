@@ -666,6 +666,7 @@ class Ship( object ):
     def estimate_quality( self ):
         '''Estimate the quality of the deliverable assuming quality is:
         q_k = product( criteria_value / critical_value )
+        This is a Cobb-Douglas utility function.
 
         Returns:
             quality (float):
@@ -803,7 +804,7 @@ class Ship( object ):
 
     ########################################################################
 
-    def estimate_buyin_change( self, variable, name=None ):
+    def estimate_buyin_change( self, variable, name=None, dt=False ):
         '''Estimate the instantaneous change in buyin, dB/dX.
         Note that this calculation currently duplicates options, and could be sped up.
 
@@ -838,6 +839,10 @@ class Ship( object ):
             name (str):
                 When multiple variables of a given type, which particular variable.
 
+            dt (bool):
+                If True, convert dB/dX to dB/dt via dX/dt = 1 - X, i.e. improving X too much
+                produces diminishing returns.
+
         Returns:
             dB/dX (float):
                 Estimate for derivative of buy-in
@@ -846,22 +851,31 @@ class Ship( object ):
         if variable in [ 'quality', 'q', 'q_k' ]:
             B_k = self.estimate_buyin()
             q_k = self.estimate_quality()
-            return B_k / q_k
+            dB = B_k / q_k
+            if dt:
+                dB *= 1. - q_k
+            return dB
         
         elif variable in [ 'criteria values', 'c', 'c_m' ]:
             B_k = self.estimate_buyin()
             c_m = self['criteria values'][name]
-            return B_k / c_m
+            dB = B_k / c_m
+            if dt:
+                dB *= 1. - c_m
+            return dB
 
         elif variable in [ 'markets', 'F', 'F_jk' ]:
-            result = 0.
+            dB = 0.
             market_row = self.markets.loc[name]
             for ms_name in market_row.index:
                 n_ij = market_row.loc[ms_name]
                 B_ik = self.estimate_market_segment_buyin( ms_name )
-                result += n_ij * B_ik
+                dB += n_ij * B_ik
 
-            return result
+            if dt:
+                dB *= 1. - self['markets'][name]
+
+            return dB
 
         elif variable in [ 'market segments', 'f', 'f_ik' ]:
             q_k = self.estimate_quality()
@@ -869,15 +883,29 @@ class Ship( object ):
             sum_term = 0.
             for m_name, F_jk in self['markets'].items():
                 sum_term += F_jk * self.markets.loc[m_name].loc[name]
-            return q_k * b_i * sum_term
+            dB = q_k * b_i * sum_term
+
+            if dt:
+                try:
+                    f_ik = self['market segments'][name]
+                except KeyError:
+                    f_ik = self.market_segments['Default Compatibility'].loc[name]
+                dB *= 1. - f_ik
+
+            return dB
 
         else:
             raise KeyError( 'Unrecognized variable, {}'.format( variable ) )
 
     ########################################################################
 
-    def estimate_buyin_change_landscape( self ):
+    def estimate_buyin_change_landscape( self, dt=False ):
         '''Function for showing all user-controllable derivatives of buyin.
+
+        Args:
+            dt (bool):
+                If True, convert dB/dX to dB/dt via dX/dt = 1 - X, i.e. improving X too much
+                produces diminishing returns.
             
         Returns:
             landscape:
@@ -885,7 +913,7 @@ class Ship( object ):
         '''
 
         landscape = {}
-        landscape['quality'] = self.estimate_buyin_change( 'q' )
+        landscape['quality'] = self.estimate_buyin_change( 'q', dt=dt )
 
         # Variables with multiple options
         keys = {
@@ -899,6 +927,7 @@ class Ship( object ):
                 landscape[variable][v_name] = self.estimate_buyin_change(
                     variable,
                     name = v_name,
+                    dt = dt,
                 )
 
         return verdict.Dict( landscape )

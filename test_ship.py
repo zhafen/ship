@@ -692,6 +692,40 @@ class TestEstimateImpact( unittest.TestCase ):
         )
         npt.assert_allclose( expected, actual['market segments'][self.ms_name] )
 
+    ########################################################################
+
+    def test_estimate_dBdt_landscape( self ):
+
+        actual = self.ship.estimate_buyin_change_landscape( dt=True )
+
+        # dB/dq
+        expected = (
+            self.N_j_expected * self.F_expected * self.sum_expected
+        ) * ( 1. - self.q_expected )
+        npt.assert_allclose( expected, actual['quality'] )
+
+        # dB/dc
+        dBdq = (
+            self.N_j_expected * self.F_expected * self.sum_expected
+        )
+        expected = dBdq * self.q_expected / self.ship['criteria values']['functionality']
+        expected *= 1. - self.ship['criteria values']['functionality'] 
+        npt.assert_allclose( expected, actual['criteria values']['functionality'] )
+
+        # dB/dF
+        expected = (
+            self.q_expected * self.sum_expected
+        ) * ( 1. - self.F_expected )
+        npt.assert_allclose( expected, actual['markets'][self.m_name] )
+
+        # dB/df
+        ms_row = self.ms.loc[self.ms_name]
+        expected = (
+            self.F_expected * self.N_j_expected *
+            self.q_expected * ms_row['Weight'] * self.m[self.ms_name].loc[self.m_name]
+        ) * ( 1. - self.ship['market segments'][self.ms_name] )
+        npt.assert_allclose( expected, actual['market segments'][self.ms_name] )
+
 ########################################################################
 
 class TestPlot( unittest.TestCase ):
