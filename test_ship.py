@@ -464,7 +464,7 @@ class TestEstimateImpact( unittest.TestCase ):
         self.m_name = self.m.index[0]
         self.ms = self.ship.market_segments
         self.ms_name = self.ms.index[0]
-        self.q_expected = ( 10. * 5. ) / 64.
+        self.q_expected = ( 10. * 5. ) / 100.
         self.F_expected = F_j[m_name]
         self.N_j_expected = len( self.ship['markets'] )
         self.sum_expected = np.sum(
@@ -586,7 +586,7 @@ class TestEstimateImpact( unittest.TestCase ):
         dBdq = (
             self.N_j_expected * self.F_expected * self.sum_expected
         )
-        expected = dBdq * self.q_expected / self.ship['criteria values']['functionality']
+        expected = dBdq * self.q_expected / self.ship['criteria values']['functionality'] * 10.
 
         npt.assert_allclose( expected, actual )
 
@@ -675,7 +675,7 @@ class TestEstimateImpact( unittest.TestCase ):
         dBdq = (
             self.N_j_expected * self.F_expected * self.sum_expected
         )
-        expected = dBdq * self.q_expected / self.ship['criteria values']['functionality']
+        expected = dBdq * self.q_expected / self.ship['criteria values']['functionality'] * 10.
         npt.assert_allclose( expected, actual['criteria values']['functionality'] )
 
         # dB/dF
@@ -703,14 +703,17 @@ class TestEstimateImpact( unittest.TestCase ):
             self.N_j_expected * self.F_expected * self.sum_expected
         ) * ( 1. - self.q_expected )
         npt.assert_allclose( expected, actual['quality'] )
+        assert actual['quality'] > 0.
 
         # dB/dc
         dBdq = (
             self.N_j_expected * self.F_expected * self.sum_expected
         )
-        expected = dBdq * self.q_expected / self.ship['criteria values']['functionality']
-        expected *= 1. - self.ship['criteria values']['functionality'] 
+        f_ik = self.ship['criteria values']['functionality'] / 10.
+        expected = dBdq * self.q_expected / f_ik
+        expected *= 1. - f_ik
         npt.assert_allclose( expected, actual['criteria values']['functionality'] )
+        assert actual['criteria values']['functionality'] >= 0.
 
         # dB/dF
         expected = (

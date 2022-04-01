@@ -682,7 +682,7 @@ class Ship( object ):
                 Estimate for the quality.
         '''
 
-        scaled = self['criteria values'] / self.critical_value
+        scaled = self['criteria values'] / 10.
         quality = np.prod( scaled.array() )
 
         return quality
@@ -867,7 +867,7 @@ class Ship( object ):
         
         elif variable in [ 'criteria values', 'c', 'c_m' ]:
             B_k = self.estimate_buyin()
-            c_m = self['criteria values'][name]
+            c_m = self['criteria values'][name] / 10.
             dB = B_k / c_m
             if dt:
                 dB *= 1. - c_m
