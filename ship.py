@@ -286,7 +286,7 @@ class Fleet( object ):
     def plot_fleet_overview(
         self,
         fig = None,
-        y_axes = [ 'quality', 'buy-in', 'max buy-in change', 'max dB/dt' ],
+        y_axes = [ 'quality', 'buy-in', 'max dB/dt' ],
     ):    
         
         mosaic = [ [ _, ] for _ in y_axes ]
@@ -342,9 +342,7 @@ class Fleet( object ):
 
         y_label = '{} {}'.format( variable, y_axis ) 
         
-        if ( variable == 'criteria values' ) and ( y_axis in [ 'buy-in', 'values' ] ):
-            ax.tick_params( left=False, labelleft=False, which='minor' )
-        
+        if y_axis in [ 'buy-in', 'values' ]:
             # Draw relative line
             ax.axhline(
                 1,
@@ -352,27 +350,38 @@ class Fleet( object ):
                 color = 'k',
                 zorder = 9,
             )
+        
+            if variable == 'criteria values':
+                ax.tick_params( left=False, labelleft=False, which='minor' )
+            
+                # Draw relative line
+                ax.axhline(
+                    1,
+                    linewidth = 1,
+                    color = 'k',
+                    zorder = 9,
+                )
 
-            # Set yticks to values
-            ytick_labels = np.arange( 1, 11 )
-            ytick_values = ytick_labels / self.critical_value
-            ax.set_yticks( ytick_values )
-            ax.set_yticklabels( ytick_labels )
-            ax.set_ylim( ytick_values[0], ytick_values[-1], )
+                # Set yticks to values
+                ytick_labels = np.arange( 1, 11 )
+                ytick_values = ytick_labels / self.critical_value
+                ax.set_yticks( ytick_values )
+                ax.set_yticklabels( ytick_labels )
+                ax.set_ylim( ytick_values[0], ytick_values[-1], )
 
-            # Note quality value
-            quality = self[name].estimate_quality() 
-            ax.annotate(
-                text = r'$q =$' + '{:.2g}'.format( quality ),
-                xy = ( 1, 1 ),
-                xycoords = 'axes fraction',
-                xytext = ( 5, -5 ),
-                textcoords = 'offset points',
-                va = 'top',
-                ha = 'left',
-            )
+                # Note quality value
+                quality = self[name].estimate_quality() 
+                ax.annotate(
+                    text = r'$q =$' + '{:.2g}'.format( quality ),
+                    xy = ( 1, 1 ),
+                    xycoords = 'axes fraction',
+                    xytext = ( 5, -5 ),
+                    textcoords = 'offset points',
+                    va = 'top',
+                    ha = 'left',
+                )
 
-            y_label = variable
+                y_label = variable
         
         ax.set_ylabel( y_label )
 
@@ -398,7 +407,7 @@ class Fleet( object ):
             ys = self.plot_ship( name, y_axis=y_axis, variable=variable, ax=ax, )
             
             # Store limits
-            if not ( variable == 'criteria values' and y_axis == 'buy-in' ):
+            if not ( variable == 'criteria values' and y_axis in [ 'buy-in', 'values' ] ):
                 y_mins.append( ax.get_ylim()[0] )
                 y_maxs.append( ax.get_ylim()[1] )
                 
@@ -407,7 +416,7 @@ class Fleet( object ):
         y_max = np.max( y_maxs )
         for variable in modable_variables:
             ax = ax_dict[variable]
-            if not ( variable == 'criteria values' and y_axis == 'buy-in' ):
+            if not ( variable == 'criteria values' and y_axis in [ 'buy-in', 'values' ] ):
                 ax.set_ylim( y_min, y_max )
             
         fig.tight_layout()
