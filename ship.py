@@ -254,9 +254,11 @@ class Fleet( object ):
             ys = self.ships.estimate_buyin_change( dt=dt, **y_kwargs )
         elif y_axis in [ 'max buy-in change', 'max dB/dt' ]:
             dt = y_axis == 'max dB/dt'
+            ys_unformatted = self.ships.estimate_buyin_change_max( dt=dt )
             ys = verdict.Dict({})
-            for name, ship_i in self.ships.items():
-                y_key = '{}\n{}'.format( name, v_key )
+            for name, (v_key, value) in ys_unformatted.items():
+                v_key_str = '{}.{}'.format( *v_key )
+                y_key = '{}\n{}'.format( name, v_key_str )
                 ys[y_key] = value
         else:
             raise KeyError( 'Unrecognized y_axis, {}'.format( y_axis ) )
@@ -877,6 +879,7 @@ class Ship( object ):
         elif variable in [ 'market segments', 'f', 'f_ik' ]:
             variable = 'market segments'
 
+        # Skip constant variables
         if 'variables held constant' in self.data:
             if ( variable, name ) in self.data['variables held constant']:
                 return 0.
