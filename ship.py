@@ -256,14 +256,6 @@ class Fleet( object ):
             dt = y_axis == 'max dB/dt'
             ys = verdict.Dict({})
             for name, ship_i in self.ships.items():
-                dbl = ship_i.estimate_buyin_change_landscape( dt=dt )
-                v_maxs = verdict.Dict({})
-                for variable in [ 'criteria values', 'markets', 'market segments' ]:
-                    v_name, value = dbl[variable].keymax()
-                    v_short = modable_variable_shorthand[variable]
-                    v_key = '{}.{}'.format( v_short, v_name )
-                    v_maxs[v_key] = value
-                v_key, value = v_maxs.keymax()
                 y_key = '{}\n{}'.format( name, v_key )
                 ys[y_key] = value
         else:
@@ -940,3 +932,33 @@ class Ship( object ):
                 )
 
         return verdict.Dict( landscape )
+
+    ########################################################################
+
+    def estimate_buyin_change_max( self, dt=False ):
+        '''Function for showing all user-controllable derivatives of buyin.
+
+        Args:
+            dt (bool):
+                If True, convert dB/dX to dB/dt via dX/dt = 1 - X, i.e. improving X too much
+                produces diminishing returns.
+            
+        Returns:
+            maxkeys (tuple of strs):
+                Strings indicating what variable is the max.
+
+            max (float):
+                Max value.
+        '''
+
+        dbl = self.estimate_buyin_change_landscape( dt=dt )
+
+        v_maxs = verdict.Dict({})
+        for variable in [ 'criteria values', 'markets', 'market segments' ]:
+            v_name, value = dbl[variable].keymax()
+            v_short = modable_variable_shorthand[variable]
+            v_key = ( v_short, v_name )
+            v_maxs[v_key] = value
+        v_key, value = v_maxs.keymax()
+
+        return v_key, value

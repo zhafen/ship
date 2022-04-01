@@ -729,6 +729,19 @@ class TestEstimateImpact( unittest.TestCase ):
         ) * ( 1. - self.ship['market segments'][self.ms_name] )
         npt.assert_allclose( expected, actual['market segments'][self.ms_name] )
 
+    ########################################################################
+
+    def test_estimate_max_dB( self ):
+
+        dB = self.ship.estimate_buyin_change_landscape()
+        expected = dB['criteria values']['understandability']
+
+        actual_keys, actual_value = self.ship.estimate_buyin_change_max()
+
+        npt.assert_allclose( expected, actual_value )
+        assert actual_keys[0] == 'c'
+        assert actual_keys[1] == 'understandability'
+
 ########################################################################
 
 class TestPlot( unittest.TestCase ):
