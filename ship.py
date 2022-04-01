@@ -317,7 +317,12 @@ class Fleet( object ):
             ax = plt.gca()
             
         # Get data
-        if y_axis == 'buy-in':
+        if y_axis == 'values':
+            if variable == 'criteria values':
+                ys = self.ships[name]['criteria values'] / self.critical_value
+            else:
+                ys = self.ships[name][variable]
+        elif y_axis == 'buy-in':
             if variable == 'criteria values':
                 ys = self.ships[name]['criteria values'] / self.critical_value
             else:
@@ -327,6 +332,8 @@ class Fleet( object ):
             dt = y_axis == 'dB/dt'
             dbl = self.ships[name].estimate_buyin_change_landscape( dt=dt )
             ys = dbl[variable]
+        else:
+            raise KeyError( 'Unrecognized y_axis, {}'.format( y_axis ) )
 
         plot_quant_vs_qual( ax, ys, rotation=rotation )
         
@@ -335,7 +342,7 @@ class Fleet( object ):
 
         y_label = '{} {}'.format( variable, y_axis ) 
         
-        if ( variable == 'criteria values' ) and ( y_axis == 'buy-in' ):
+        if ( variable == 'criteria values' ) and ( y_axis in [ 'buy-in', 'values' ] ):
             ax.tick_params( left=False, labelleft=False, which='minor' )
         
             # Draw relative line

@@ -828,7 +828,7 @@ class TestPlot( unittest.TestCase ):
     def test_plot_ship( self ):
         '''Just make sure it doesn't crash.'''
 
-        for y_axis in [ 'buy-in', 'buy-in change', 'dB/dt' ]:
+        for y_axis in [ 'values', 'buy-in', 'buy-in change', 'dB/dt' ]:
             for variable in [ 'criteria values', 'markets', 'market segments' ]:
                 self.fleet.plot_ship( self.ship.name, y_axis=y_axis, variable=variable )
                 plt.close()
