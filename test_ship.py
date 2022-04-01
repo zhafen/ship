@@ -772,7 +772,7 @@ class TestPlot( unittest.TestCase ):
     def test_plot_fleet( self ):
         '''Just make sure it doesn't crash.'''
 
-        for y_axis in [ 'quality', 'buy-in', 'max buy-in change' ]:
+        for y_axis in [ 'quality', 'buy-in', 'max buy-in change', 'max dB/dt' ]:
             self.fleet.plot_fleet( y_axis=y_axis, )
             plt.close()
 
@@ -782,8 +782,10 @@ class TestPlot( unittest.TestCase ):
             'market segments': self.ms_name,
         }
         for variable in [ 'criteria values', 'markets', 'market segments' ]:
-            self.fleet.plot_fleet( y_axis='buy-in change', variable=variable, name=v_names[variable] )
-            plt.close()
+            for y_axis in [ 'buy-in change', 'dB/dt' ]:
+                self.fleet.plot_fleet( y_axis=y_axis, variable=variable, name=v_names[variable] )
+                plt.close()
+
     ########################################################################
 
     def test_plot_fleet_overview( self ):
@@ -795,7 +797,7 @@ class TestPlot( unittest.TestCase ):
     def test_plot_ship( self ):
         '''Just make sure it doesn't crash.'''
 
-        for y_axis in [ 'buy-in', 'buy-in change', ]:
+        for y_axis in [ 'buy-in', 'buy-in change', 'dB/dt' ]:
             for variable in [ 'criteria values', 'markets', 'market segments' ]:
                 self.fleet.plot_ship( self.ship.name, y_axis=y_axis, variable=variable )
                 plt.close()
@@ -804,7 +806,7 @@ class TestPlot( unittest.TestCase ):
 
     def test_plot_ship_overview( self ):
 
-        for y_axis in [ 'buy-in', 'buy-in change' ]:
+        for y_axis in [ 'buy-in', 'buy-in change', 'dB/dt' ]:
             self.fleet.plot_ship_overview( self.ship.name, y_axis=y_axis )
      
     ########################################################################

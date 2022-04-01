@@ -249,12 +249,14 @@ class Fleet( object ):
             ys = self.ships.estimate_quality()
         elif y_axis == 'buy-in':
             ys = self.ships.estimate_buyin()
-        elif y_axis == 'buy-in change':
-            ys = self.ships.estimate_buyin_change( **y_kwargs )
-        elif y_axis == 'max buy-in change':
+        elif y_axis in [ 'buy-in change', 'dB/dt' ]:
+            dt = y_axis == 'dB/dt'
+            ys = self.ships.estimate_buyin_change( dt=dt, **y_kwargs )
+        elif y_axis in [ 'max buy-in change', 'max dB/dt' ]:
+            dt = y_axis == 'max dB/dt'
             ys = verdict.Dict({})
             for name, ship_i in self.ships.items():
-                dbl = ship_i.estimate_buyin_change_landscape()
+                dbl = ship_i.estimate_buyin_change_landscape( dt=dt )
                 v_maxs = verdict.Dict({})
                 for variable in [ 'criteria values', 'markets', 'market segments' ]:
                     v_name, value = dbl[variable].keymax()
@@ -264,6 +266,8 @@ class Fleet( object ):
                 v_key, value = v_maxs.keymax()
                 y_key = '{}\n{}'.format( name, v_key )
                 ys[y_key] = value
+        else:
+            raise KeyError( 'Unrecognized y_axis, {}'.format( y_axis ) )
         
         plot_quant_vs_qual( ax, ys, rotation=rotation )
 
@@ -285,7 +289,11 @@ class Fleet( object ):
 
     ########################################################################
 
-    def plot_fleet_overview( self, fig=None, y_axes=[ 'quality', 'buy-in', 'max buy-in change', ] ):    
+    def plot_fleet_overview(
+        self,
+        fig = None,
+        y_axes = [ 'quality', 'buy-in', 'max buy-in change', 'max dB/dt' ],
+    ):    
         
         mosaic = [ [ _, ] for _ in y_axes ]
         if fig is None:
@@ -321,8 +329,9 @@ class Fleet( object ):
             else:
                 bl = self.ships[name].estimate_buyin_landscape()
                 ys = bl[variable]
-        elif y_axis == 'buy-in change':
-            dbl = self.ships[name].estimate_buyin_change_landscape()
+        elif y_axis in [ 'buy-in change', 'dB/dt' ]:
+            dt = y_axis == 'dB/dt'
+            dbl = self.ships[name].estimate_buyin_change_landscape( dt=dt )
             ys = dbl[variable]
 
         plot_quant_vs_qual( ax, ys, rotation=rotation )
