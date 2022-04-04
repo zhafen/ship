@@ -782,6 +782,21 @@ class TestEstimateImpact( unittest.TestCase ):
         actual_keys, actual_value = self.ship.estimate_buyin_change_max( dt=True )
         assert actual_keys[1] != 'Astrophysicists'
 
+    ########################################################################
+
+    def test_estimate_max_dBdt_formatted_list( self ):
+        '''Ignore everything but the markets.'''
+
+        # Setup
+        self.ship.data['variables held constant'] = []
+        for variable in [ 'criteria values', 'market segments' ]:
+            for v_name in self.ship[variable].keys():
+                self.ship['variables held constant'].append( [ variable, v_name ] )
+
+        actual_keys, actual_value = self.ship.estimate_buyin_change_max( dt=True )
+
+        assert actual_keys[0] not in [ 'f', 'c' ]
+
 ########################################################################
 
 class TestPlot( unittest.TestCase ):

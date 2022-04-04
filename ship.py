@@ -618,7 +618,7 @@ class Ship( object ):
         key = 'variables held constant'
         if key not in self.data:
             self.data[key] = []
-        self.data[key].append( (variable, name) )
+        self.data[key].append( [variable, name] )
 
     ########################################################################
 
@@ -929,7 +929,7 @@ class Ship( object ):
 
         # Skip constant variables
         if 'variables held constant' in self.data:
-            if ( variable, name ) in self.data['variables held constant']:
+            if [ variable, name ] in self.data['variables held constant']:
                 return 0.
 
         if variable == 'quality':
