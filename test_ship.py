@@ -759,6 +759,29 @@ class TestEstimateImpact( unittest.TestCase ):
         assert actual_keys[0] == 'f'
         assert actual_keys[1] == 'Astrophysicists'
 
+        self.ship.hold_variable_constant( variable='market segments', name='Astrophysicists' )
+        actual_keys, actual_value = self.ship.estimate_buyin_change_max()
+        assert actual_keys[1] != 'Astrophysicists'
+
+    ########################################################################
+
+    def test_estimate_max_dBdt_ignore_list( self ):
+
+        self.ship.hold_variable_constant( variable='market segments', name='Astrophysicists' )
+
+        dB = self.ship.estimate_buyin_change_landscape( dt=True )
+        expected = dB['criteria values']['understandability']
+
+        actual_keys, actual_value = self.ship.estimate_buyin_change_max( dt=True )
+
+        npt.assert_allclose( expected, actual_value )
+        assert actual_keys[0] == 'c'
+        assert actual_keys[1] == 'understandability'
+
+        self.ship.hold_variable_constant( variable='criteria values', name='functionality' )
+        actual_keys, actual_value = self.ship.estimate_buyin_change_max( dt=True )
+        assert actual_keys[1] != 'Astrophysicists'
+
 ########################################################################
 
 class TestPlot( unittest.TestCase ):
