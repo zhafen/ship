@@ -320,14 +320,7 @@ class Fleet( object ):
         if y_axis == 'values':
             if variable == 'criteria values':
                 ys = self.ships[name]['criteria values'] / self.critical_value
-            elif variable == 'market segments':
-                ys = verdict.Dict({})
-                for ms_name in self.market_segments.index:
-                    if ms_name in self.ships[name][variable]:
-                        ys[ms_name] = self.ships[name][variable][ms_name]
-                    else:
-                        ys[ms_name] = self.market_segments['Default Compatibility'].loc[ms_name]
-            elif variable == 'markets':
+            elif ( variable == 'markets' ) or ( variable == 'market segments' ):
                 ys = self.ships[name][variable]
             else:
                 raise KeyError( 'Unrecognized variable, {}'.format( variable ) )
@@ -976,10 +969,7 @@ class Ship( object ):
             dB = q_k * b_i * sum_term
 
             if dt:
-                try:
-                    f_ik = self['market segments'][name]
-                except KeyError:
-                    f_ik = self.market_segments['Default Compatibility'].loc[name]
+                f_ik = self['market segments'][name]
                 dB *= 1. - f_ik
 
             return dB
@@ -1006,14 +996,9 @@ class Ship( object ):
         landscape['quality'] = self.estimate_buyin_change( 'q', dt=dt )
 
         # Variables with multiple options
-        keys = {
-            'criteria values': self['criteria values'].keys(),
-            'markets': self['markets'].keys(),
-            'market segments': self.market_segments.index,
-        }
-        for variable, variable_keys in keys.items():
+        for variable in modable_variables:
             landscape[variable] = {}
-            for v_name in variable_keys:
+            for v_name in self[variable].keys():
                 landscape[variable][v_name] = self.estimate_buyin_change(
                     variable,
                     name = v_name,
