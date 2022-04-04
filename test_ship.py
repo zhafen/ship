@@ -304,9 +304,10 @@ class TestEvaluateMarket( unittest.TestCase ):
 
     def test_evaluate_ship( self ):
 
-        output = self.ship.evaluate_market_segments( understandability=0.5, functionality=0.25 )
+        output = self.ship.evaluate_market_segments( friends=0.5, foes=0.25 )
 
-        npt.assert_allclose( np.prod( output.array() ), 0.5*0.25 )
+        expected = np.prod( self.ship.market_segments['Default Compatibility'] ) * 0.5 * 0.25
+        npt.assert_allclose( np.prod( output.array() ), expected )
 
     ########################################################################
 
@@ -498,6 +499,7 @@ class TestEstimateImpact( unittest.TestCase ):
 
         del self.ship['market segments'][self.ms_name]
 
+        self.ship.evaluate_market_segments()
         actual = self.ship.estimate_market_segment_buyin( self.ms_name )
 
         ms_row = self.ms.loc[self.ms_name]

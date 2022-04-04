@@ -361,8 +361,7 @@ class Fleet( object ):
         # Plot maximum buy-ins
         if y_axis == 'buy-in' and variable != 'criteria values':
 
-            dbl = self.ships[name].estimate_buyin_change_landscape( dt=False )
-            max_ys = dbl[variable]
+            max_ys = ys / s
 
             plot_quant_vs_qual( ax, max_ys, rotation=rotation, color='none', edgecolor='k' )
         
@@ -674,11 +673,11 @@ class Ship( object ):
         Right now this just stores the data in the right spot.
         '''
 
+        used_keys = set( self['market segments'].keys() ).union(
+            set( self.market_segments.index )
+        )
         if request_user_input:
             print( 'Evaluating market segments for [ {} ]...'.format( self.name ) )
-            used_keys = set( self['market segments'].keys() ).union(
-                set( self.market_segments.index )
-            )
             for key in used_keys:
                 if key not in compatibility_values:
 
@@ -700,6 +699,12 @@ class Ship( object ):
                         continue
 
                     compatibility_values[key] = float( value )
+        else:
+            # Replace empty values
+            for key in used_keys:
+                if ( key in self['market segments'] ) or ( key in compatibility_values ):
+                    continue
+                compatibility_values[key] = self.market_segments.loc[key]['Default Compatibility']
 
         # Update the current ship values
         self['market segments'].update( compatibility_values )
@@ -782,13 +787,7 @@ class Ship( object ):
 
         q_k = self.estimate_quality()
         b_i = self.market_segments.loc[ms_name]['Weight']
-        try:
-            f_ik = self['market segments'][ms_name]
-        except KeyError:
-            if use_default_for_missing_values:
-                f_ik = self.market_segments.loc[ms_name]['Default Compatibility']
-            else:
-                raise KeyError( 'Missing market segment compatibility for category {}'.format( ms_name ) )
+        f_ik = self['market segments'][ms_name]
 
         return q_k * b_i * f_ik
 
