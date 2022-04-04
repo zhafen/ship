@@ -354,7 +354,8 @@ class Fleet( object ):
         # Plot maximum buy-ins
         if y_axis == 'buy-in' and variable != 'criteria values':
 
-            max_ys = ys / s
+            dbl = self.ships[name].estimate_buyin_change_landscape()
+            max_ys = dbl[variable]
 
             plot_quant_vs_qual( ax, max_ys, rotation=rotation, color='none', edgecolor='k' )
         
@@ -995,7 +996,6 @@ class Ship( object ):
         landscape = {}
         landscape['quality'] = self.estimate_buyin_change( 'q', dt=dt )
 
-        # Variables with multiple options
         for variable in modable_variables:
             landscape[variable] = {}
             for v_name in self[variable].keys():
