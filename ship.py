@@ -120,6 +120,26 @@ class Fleet( object ):
 
         self[name] = copy.deepcopy( other_fleet[name] )
         del other_fleet.ships[name]
+
+    ########################################################################
+
+    def launch_ship( self, name, dock_fleet ):
+        '''Launch a ship from the docks to here.
+        (Move the ship, and hold all the quality and market segment values constant.)
+
+        Args:
+            name (str):
+                Name of the deliverable.
+
+            dock_fleet (ship.Fleet):
+                Other fleet to move ship from.
+        '''
+
+        self.move_ship( name, dock_fleet )
+
+        for variable in [ 'criteria values', 'market segments' ]:
+            for v_name in self[name][variable].keys():
+                self[name].hold_variable_constant( variable, v_name )
     
     ########################################################################
 

@@ -69,6 +69,26 @@ class TestConstruct( unittest.TestCase ):
 
         fleet2.move_ship( 'The Ship', fleet1 )
 
+    ########################################################################
+
+    def test_launch_ship( self ):
+
+        fleet1 = ship.Fleet( criteria=default_criteria )
+        fleet1.construct_ship(
+            'The Ship',
+            description = 'The default test ship.',
+            category = 'code package',
+        )
+        fleet1['The Ship'].evaluate()
+        fleet1['The Ship'].evaluate_market_segments()
+        fleet2 = ship.Fleet( criteria=default_criteria )
+
+        fleet2.launch_ship( 'The Ship', fleet1 )
+        for criteria in default_criteria:
+            assert [ 'criteria values', criteria ] in fleet2['The Ship']['variables held constant']
+        for ms_name in fleet2.market_segments.index:
+            assert [ 'market segments', ms_name ] in fleet2['The Ship']['variables held constant']
+
 ########################################################################
 
 class TestIO( unittest.TestCase ):
