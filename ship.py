@@ -107,8 +107,9 @@ class Fleet( object ):
 
     ########################################################################
 
-    def move_ship( self, name, other_fleet ):
+    def move_ship( self, name, other_fleet, new_name=None ):
         '''Move a ship from another fleet to this fleet.
+        This function can be used to rename if other_fleet is self.
 
         Args:
             name (str):
@@ -116,10 +117,17 @@ class Fleet( object ):
 
             other_fleet (ship.Fleet):
                 Other fleet to move ship from.
+
+            new_name (str):
+                New name, if changing.
         '''
 
-        self[name] = copy.deepcopy( other_fleet[name] )
+        if new_name is None:
+            new_name = name
+
+        self[new_name] = copy.deepcopy( other_fleet[name] )
         del other_fleet.ships[name]
+        self[new_name].name = new_name
 
     ########################################################################
 
