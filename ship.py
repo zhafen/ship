@@ -943,6 +943,11 @@ class Ship( object ):
         elif variable == 'criteria values':
             B_k = self.estimate_buyin()
             c_m = self['criteria values'][name] / 10.
+
+            # Largely unconstrained scenario.
+            if np.isclose( B_k, 0. ) and np.isclose( c_m, 0. ):
+                return 0.
+
             dB = B_k / c_m
             if dt:
                 dB *= 1. - c_m
@@ -1029,10 +1034,20 @@ class Ship( object ):
 
         v_maxs = verdict.Dict({})
         for variable in [ 'criteria values', 'markets', 'market segments' ]:
+
+            # Skip empty
+            if len( dbl[variable] ) == 0:
+                continue
+
             v_name, value = dbl[variable].keymax()
             v_short = modable_variable_shorthand[variable]
             v_key = ( v_short, v_name )
             v_maxs[v_key] = value
+
+        # Fully empty scenario
+        if len( v_maxs ) == 0:
+            return 'not enough info', 0.
+
         v_key, value = v_maxs.keymax()
 
         return v_key, value

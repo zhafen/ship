@@ -797,6 +797,23 @@ class TestEstimateImpact( unittest.TestCase ):
 
         assert actual_keys[0] not in [ 'f', 'c' ]
 
+    ########################################################################
+
+    def test_estimate_max_dB_new_empty_ship( self ):
+
+        # Setup
+        new_name = 'empty'
+        self.fleet.construct_ship( new_name )
+        ship_i = self.fleet[new_name]
+
+        dB = ship_i.estimate_buyin_change_landscape( dt=True )
+        expected = dB['criteria values']['understandability']
+
+        actual_keys, actual_value = ship_i.estimate_buyin_change_max( dt=True )
+
+        npt.assert_allclose( expected, actual_value )
+        assert actual_keys[0] == 'c'
+
 ########################################################################
 
 class TestPlot( unittest.TestCase ):
