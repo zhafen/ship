@@ -96,6 +96,8 @@ class Fleet( object ):
                 List of names of criteria to evaluate for when the deliverable is ready.
         '''
 
+        assert name not in self.ships.keys(), "Ship {} already exists!".format( name )
+
         # Combination of particular criteria and default criteria
         criteria=list( set( self.criteria ).union( criteria ) )
         used_kwargs = {
