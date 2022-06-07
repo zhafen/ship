@@ -854,7 +854,6 @@ class Ship( object ):
 
     def estimate_buyin( self ):
         '''Estimate the buy-in expected from sending the ship to all markets,
-        from a specified market segment,
         B_k = sum( B_jk )
         where...
         j tracks market
