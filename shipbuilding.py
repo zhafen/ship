@@ -94,6 +94,12 @@ class Schedule( object ):
     ########################################################################
         
     def __repr__( self ):
+
+        for key in TIME_VARIABLES:
+            if self.p[key] < 1. * unyt.hr:
+                self.p[key] = self.p[key].to( 'min' )
+            else:
+                self.p[key] = self.p[key].to( 'hr' )
         
         display_str = '{}\n    {:.2g} sessions, {} per session, {:.0f} between\n    {:.0f}/day, {:.0f}/week, {:.0f}-day week, {} start'.format(
             self.p['activity'],
