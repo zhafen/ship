@@ -10,8 +10,8 @@ import verdict
 
 ########################################################################
 
-modable_variables = [ 'criteria values', 'markets', 'market segments' ]
-modable_variable_shorthand = {
+MODIFIABLE_VARIABLES = [ 'criteria values', 'markets', 'market segments' ]
+MODIFIABLE_VARIABLE_SHORTHAND = {
     'criteria values': 'c',
     'markets': 'F',
     'market segments': 'f',
@@ -287,7 +287,7 @@ class Fleet( object ):
             ys_unformatted = self.ships.estimate_buyin_change_max( dt=dt )
             ys = verdict.Dict({})
             for name, (v_key, value) in ys_unformatted.items():
-                v_key_str = '{}.{}'.format( *v_key )
+                v_key_str = '{}.{}'.format( MODIFIABLE_VARIABLE_SHORTHAND[v_key[0]], v_key[1] )
                 y_key = '{}\n{}'.format( name, v_key_str )
                 ys[y_key] = value
         else:
@@ -438,9 +438,9 @@ class Fleet( object ):
 
     def plot_ship_overview( self, name, fig=None, y_axis='buy-in' ):    
         
-        mosaic = [ [ _, ] for _ in modable_variables ]
+        mosaic = [ [ _, ] for _ in MODIFIABLE_VARIABLES ]
         if fig is None:
-            n_rows = len( modable_variables )
+            n_rows = len( MODIFIABLE_VARIABLES )
             fig = plt.figure( figsize=(8,4*n_rows), facecolor='w' )
             
         ax_dict = fig.subplot_mosaic( mosaic )
@@ -448,7 +448,7 @@ class Fleet( object ):
         # Plot
         y_mins = []
         y_maxs = []
-        for variable in modable_variables:
+        for variable in MODIFIABLE_VARIABLES:
             ax = ax_dict[variable]
             
             ys = self.plot_ship( name, y_axis=y_axis, variable=variable, ax=ax, )
@@ -461,7 +461,7 @@ class Fleet( object ):
         # Adjust limits
         y_min = np.min( y_mins )
         y_max = np.max( y_maxs )
-        for variable in modable_variables:
+        for variable in MODIFIABLE_VARIABLES:
             ax = ax_dict[variable]
             if not ( variable == 'criteria values' and y_axis in [ 'buy-in', 'values' ] ):
                 ax.set_ylim( y_min, y_max )
@@ -1030,7 +1030,7 @@ class Ship( object ):
         landscape = {}
         landscape['quality'] = self.estimate_buyin_change( 'q', dt=dt )
 
-        for variable in modable_variables:
+        for variable in MODIFIABLE_VARIABLES:
             landscape[variable] = {}
             for v_name in self[variable].keys():
                 landscape[variable][v_name] = self.estimate_buyin_change(
@@ -1062,15 +1062,14 @@ class Ship( object ):
         dbl = self.estimate_buyin_change_landscape( dt=dt )
 
         v_maxs = verdict.Dict({})
-        for variable in [ 'criteria values', 'markets', 'market segments' ]:
+        for variable in MODIFIABLE_VARIABLES:
 
             # Skip empty
             if len( dbl[variable] ) == 0:
                 continue
 
             v_name, value = dbl[variable].keymax()
-            v_short = modable_variable_shorthand[variable]
-            v_key = ( v_short, v_name )
+            v_key = ( variable, v_name )
             v_maxs[v_key] = value
 
         # Fully empty scenario
