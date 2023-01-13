@@ -761,7 +761,7 @@ class TestEstimateImpact( unittest.TestCase ):
         actual_keys, actual_value = self.ship.estimate_buyin_change_max()
 
         npt.assert_allclose( expected, actual_value )
-        assert actual_keys[0] == 'c'
+        assert actual_keys[0] == 'criteria values'
         assert actual_keys[1] == 'understandability'
 
     ########################################################################
@@ -776,7 +776,7 @@ class TestEstimateImpact( unittest.TestCase ):
         actual_keys, actual_value = self.ship.estimate_buyin_change_max()
 
         npt.assert_allclose( expected, actual_value )
-        assert actual_keys[0] == 'f'
+        assert actual_keys[0] == 'market segments'
         assert actual_keys[1] == 'Astrophysicists'
 
         self.ship.hold_variable_constant( variable='market segments', name='Astrophysicists' )
@@ -795,7 +795,7 @@ class TestEstimateImpact( unittest.TestCase ):
         actual_keys, actual_value = self.ship.estimate_buyin_change_max( dt=True )
 
         npt.assert_allclose( expected, actual_value )
-        assert actual_keys[0] == 'c'
+        assert actual_keys[0] == 'criteria values'
         assert actual_keys[1] == 'understandability'
 
         self.ship.hold_variable_constant( variable='criteria values', name='functionality' )
@@ -832,7 +832,7 @@ class TestEstimateImpact( unittest.TestCase ):
         actual_keys, actual_value = ship_i.estimate_buyin_change_max( dt=True )
 
         npt.assert_allclose( expected, actual_value )
-        assert actual_keys[0] == 'c'
+        assert actual_keys[0] == 'criteria values'
 
 ########################################################################
 
