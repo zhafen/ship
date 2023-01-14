@@ -235,11 +235,12 @@ class Fleet( object ):
 
             # Identify changes
             diff = prior_data.diff( self.ships.data )
-            timestamp = str( datetime.datetime.now() )
-            changelog[timestamp] = diff
 
             # Save
-            changelog.save( changelog_fp )
+            if len( diff ) > 0:
+                timestamp = str( datetime.datetime.now() )
+                changelog[timestamp] = diff
+                changelog.save( changelog_fp )
 
         self.ships.data.save( filepath, *args, **kwargs )
 
