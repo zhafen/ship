@@ -1,4 +1,5 @@
 import copy
+import datetime
 import numpy as np
 import os
 import pandas as pd
@@ -205,7 +206,7 @@ class Fleet( object ):
     # I/O
     ########################################################################
 
-    def save( self, filepath, *args, **kwargs ):
+    def save( self, filepath, save_changelog=True, changelog_fp=None, *args, **kwargs ):
         '''Save the data.
         Standard file format is *.dock.h5
 
@@ -217,13 +218,30 @@ class Fleet( object ):
                 Passed to verdict.Dict.to_hdf5
         '''
 
-        # Identify filetype to choose how to save
-        filetype = os.path.splitext( filepath )[1]
+        if save_changelog:
 
-        if filetype == '.json':
-            self.ships.data.to_json( filepath, *args, **kwargs )
-        elif filetype in [ '.hdf5', '.h5' ]:
-            self.ships.data.to_hdf5( filepath, *args, **kwargs )
+            # If not provided, defaults to no-extension-filename.changelog.json
+            if changelog_fp is None:
+                changelog_fp = (
+                    os.path.splitext( os.path.splitext( filepath )[0] )[0] +
+                    '.changelog.json'
+                )
+
+            # Open changelog
+            changelog = verdict.Dict.load( changelog_fp, create_nonexistent=True )
+
+            # Open the data saved on disk
+            prior_data = verdict.Dict.load( filepath, create_nonexistent=True )
+
+            # Identify changes
+            diff = prior_data.diff( self.ships.data )
+            timestamp = str( datetime.datetime.now() )
+            changelog[timestamp] = diff
+
+            # Save
+            changelog.save( changelog_fp )
+
+        self.ships.data.save( filepath, *args, **kwargs )
 
     ########################################################################
 

@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.testing as npt
 import os
+import pandas as pd
 import mock
 import unittest
 
@@ -95,10 +96,11 @@ class TestIO( unittest.TestCase ):
 
     def setUp( self ):
 
-        self.save_fp = './test.dock.json'
-        self.hdf5_save_fp = './test.dock.hdf5'
+        self.save_fp = './test.fleet.json'
+        self.changelog_fp = './test.changelog.json'
+        self.hdf5_save_fp = './test.fleet.hdf5'
 
-        for fp in [ self.save_fp, self.hdf5_save_fp ]:
+        for fp in [ self.save_fp, self.changelog_fp, self.hdf5_save_fp ]:
             if os.path.exists( fp ):
                 os.remove( fp )
 
@@ -106,7 +108,7 @@ class TestIO( unittest.TestCase ):
 
     def tearDown( self ):
 
-        for fp in [ self.save_fp, self.hdf5_save_fp ]:
+        for fp in [ self.save_fp, self.changelog_fp, self.hdf5_save_fp ]:
             if os.path.exists( fp ):
                 os.remove( fp )
 
@@ -135,6 +137,40 @@ class TestIO( unittest.TestCase ):
         for name in names:
             for key, item in expected.items():
                 npt.assert_allclose( actual[name]['criteria values'][key], item )
+
+    ########################################################################
+
+    def test_save_changelog( self ):
+
+        # Parameters
+        names = [ 'The Ship', 'Melvulu', 'Chellship', ]
+        expected = verdict.Dict({
+            'functionality': 0.5,
+            'understandability': 0.25
+        })
+
+        # Setup
+        self.fleet = ship.Fleet( criteria=default_criteria )
+        for name in names:
+            self.fleet.construct_ship( name )
+            self.fleet[name]['criteria values'] = expected
+
+        # Save pre-modification
+        self.fleet.save( self.save_fp )
+
+        # Modify and save
+        self.fleet[name]['criteria values']['understandability'] = 0.5
+        self.fleet.save( self.save_fp )
+
+        # Check changelog
+        changelog = verdict.Dict.from_json( self.changelog_fp )
+
+        changelog_timestamps = list( changelog.keys() )
+        assert len( changelog_timestamps ) == 2
+
+        most_recent_key = str( pd.to_datetime( pd.Series( changelog_timestamps ) ).max() )
+        for name in names:
+            npt.assert_allclose( changelog[most_recent_key][name]['criteria values']['understandability'], [ 0.25, 0.5 ] )
 
     ########################################################################
 
